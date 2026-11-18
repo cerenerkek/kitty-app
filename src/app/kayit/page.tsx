@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { KayitFormu } from "@/components/kayit-formu";
+import { Suspense } from "react";
 
 export const metadata: Metadata = { title: "Kayıt ol · Kitty" };
 
@@ -17,7 +18,9 @@ export default function KayitSayfasi() {
         </p>
       </div>
 
-      <KayitFormu />
+            <Suspense fallback={<div className="h-80" />}>
+        <KayitFormu />
+      </Suspense>
 
       <p className="text-center text-sm text-muted-foreground">
         Zaten hesabın var mı?{" "}

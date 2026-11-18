@@ -5,13 +5,15 @@ import { kayitOl } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSearchParams } from "next/navigation";
 
 export function KayitFormu() {
   // durum: sunucudan dönen hata · formAction: formu gönderen fonksiyon · bekliyor: istek sürüyor mu
   const [durum, formAction, bekliyor] = useActionState(kayitOl, undefined);
-
+  const sonraki = useSearchParams().get("sonraki") ?? "";
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="sonraki" value={sonraki} />
       <div className="grid gap-2">
         <Label htmlFor="adSoyad">Ad soyad</Label>
         <Input

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { guvenliHedef } from "@/lib/yonlendirme";
 
 export type FormDurumu =
   | { hata: string; degerler?: { adSoyad?: string; email?: string } }
@@ -68,7 +69,7 @@ export async function kayitOl(
   if (error) return { hata: hataMesaji(error.code), degerler };
 
   // 3) Başarılı → korumalı sayfaya
-  redirect("/gruplar");
+    redirect(guvenliHedef(formData.get("sonraki")));
 }
 
 export async function girisYap(
@@ -93,7 +94,7 @@ export async function girisYap(
   });
   if (error) return { hata: hataMesaji(error.code), degerler };
 
-  redirect("/gruplar");
+    redirect(guvenliHedef(formData.get("sonraki")));
 }
 
 export async function cikisYap() {

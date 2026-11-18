@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { girisYap } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +9,11 @@ import { Label } from "@/components/ui/label";
 
 export function GirisFormu() {
   const [durum, formAction, bekliyor] = useActionState(girisYap, undefined);
+  const sonraki = useSearchParams().get("sonraki") ?? "";
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="sonraki" value={sonraki} />
       <div className="grid gap-2">
         <Label htmlFor="email">E-posta</Label>
         <Input

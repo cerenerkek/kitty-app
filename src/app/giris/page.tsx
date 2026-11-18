@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { GirisFormu } from "@/components/giris-formu";
 
@@ -17,7 +18,9 @@ export default function GirisSayfasi() {
         <p className="text-sm text-muted-foreground">Hesabına giriş yap.</p>
       </div>
 
-      <GirisFormu />
+      <Suspense fallback={<div className="h-56" />}>
+        <GirisFormu />
+      </Suspense>
 
       <p className="text-center text-sm text-muted-foreground">
         Hesabın yok mu?{" "}
