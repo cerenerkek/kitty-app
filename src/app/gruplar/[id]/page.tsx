@@ -5,13 +5,13 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DavetPaylas } from "@/components/davet-paylas";
-
+import { HarcamaFormu } from "@/components/harcama-formu";
+import { HarcamaListesi, type Harcama } from "@/components/harcama-listesi";
 export const metadata: Metadata = { title: "Grup · Kitty" };
 
 const UUID_KALIBI =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Üye satırının şekli: her üyenin TEK bir profili var (dizi değil)
 type Uye = {
   user_id: string;
   rol: "admin" | "uye";
@@ -50,6 +50,30 @@ export default async function GrupDetaySayfasi({
     .order("katilma_tarihi")
     .overrideTypes<Uye[], { merge: false }>();
 
+  // Form için sade kişi listesi: [{ id, ad }]
+  const kisiler = (uyeler ?? []).map((u) => ({
+    id: u.user_id,
+    ad: u.profiles?.ad_soyad ?? "İsimsiz",
+  }));
+
+  // Bugünün tarihi İstanbul saatine göre, "2026-11-19" biçiminde
+  const bugun = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Europe/Istanbul",
+  });
+  // Son 50 harcama, paylarıyla birlikte (RLS: sadece bu grubun üyesiysen gelir)
+  const { data: harcamalar } = await supabase
+    .from("expenses")
+    .select(
+      "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, expense_splits(user_id, pay_kurus)",
+    )
+    .eq("group_id", id)
+    .order("tarih", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(50)
+    .overrideTypes<Harcama[], { merge: false }>();
+
+  // Ödeyen adını bulmak için: id → ad sözlüğü
+  const isimler = new Map(kisiler.map((k) => [k.id, k.ad]));
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
       <Link href="/gruplar" className="text-sm text-muted-foreground">
@@ -58,6 +82,17 @@ export default async function GrupDetaySayfasi({
 
       <h1 className="text-2xl font-bold">{grup.ad}</h1>
 
+      <HarcamaFormu
+        grupId={grup.id}
+        kisiler={kisiler}
+        benimId={user.id}
+        bugun={bugun}
+      />
+      <HarcamaListesi
+        harcamalar={harcamalar ?? []}
+        isimler={isimler}
+        benimId={user.id}
+      />
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
@@ -86,8 +121,6 @@ export default async function GrupDetaySayfasi({
       </Card>
 
       <DavetPaylas grupId={grup.id} grupAdi={grup.ad} />
-
-      <p className="text-sm text-muted-foreground">Harcamalar yarın burada.</p>
     </main>
   );
 }

@@ -44,7 +44,6 @@ export async function grupOlustur(
 
 export type DavetSonucu = { token: string } | { hata: string };
 
-// Davet linki oluşturur; RLS sadece grup üyesinin oluşturmasına izin verir
 export async function davetOlustur(grupId: string): Promise<DavetSonucu> {
   if (!z.uuid().safeParse(grupId).success) return { hata: "Geçersiz grup." };
 

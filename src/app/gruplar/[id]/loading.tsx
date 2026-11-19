@@ -1,6 +1,4 @@
-// Grup detayı yüklenirken gösterilen iskelet.
-// Gruplar listesinden bir gruba tıklayınca ekran anında değişir,
-// grup bilgisi ve üyeler arkadan akarak gelir.
+
 export default function GrupYukleniyor() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
