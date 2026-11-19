@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DavetPaylas } from "@/components/davet-paylas";
 import { HarcamaFormu } from "@/components/harcama-formu";
 import { HarcamaListesi, type Harcama } from "@/components/harcama-listesi";
+import { BakiyeKarti } from "@/components/bakiye-karti";
+import { OdemeGecmisi, type OdemeKaydi } from "@/components/odeme-gecmisi";
+
 export const metadata: Metadata = { title: "Grup · Kitty" };
 
 const UUID_KALIBI =
@@ -74,6 +77,24 @@ export default async function GrupDetaySayfasi({
 
   // Ödeyen adını bulmak için: id → ad sözlüğü
   const isimler = new Map(kisiler.map((k) => [k.id, k.ad]));
+  // Her üyenin net bakiyesi (veritabanı hesaplar, RLS: sadece üyeysen gelir)
+  const { data: bakiyeVerisi } = await supabase.rpc("grup_bakiyeleri", {
+    p_grup_id: id,
+  });
+  const bakiyeler = (
+    (bakiyeVerisi ?? []) as { uye_id: string; net_kurus: number }[]
+  ).map((b) => ({ id: b.uye_id, net: Number(b.net_kurus) }));
+
+  // Son 20 ödeme kaydı (RLS: sadece üyeysen gelir)
+  const { data: odemeKayitlari } = await supabase
+    .from("settlements")
+    .select("id, odeyen_id, alan_id, tutar_kurus, tarih")
+    .eq("group_id", id)
+    .order("tarih", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(20)
+    .overrideTypes<OdemeKaydi[], { merge: false }>();
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
       <Link href="/gruplar" className="text-sm text-muted-foreground">
@@ -82,6 +103,14 @@ export default async function GrupDetaySayfasi({
 
       <h1 className="text-2xl font-bold">{grup.ad}</h1>
 
+      <BakiyeKarti
+        grupId={grup.id}
+        bakiyeler={bakiyeler}
+        kisiler={kisiler}
+        isimler={isimler}
+        benimId={user.id}
+        bugun={bugun}
+      />
       <HarcamaFormu
         grupId={grup.id}
         kisiler={kisiler}
@@ -90,6 +119,11 @@ export default async function GrupDetaySayfasi({
       />
       <HarcamaListesi
         harcamalar={harcamalar ?? []}
+        isimler={isimler}
+        benimId={user.id}
+      />
+      <OdemeGecmisi
+        odemeler={odemeKayitlari ?? []}
         isimler={isimler}
         benimId={user.id}
       />

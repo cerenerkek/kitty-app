@@ -22,3 +22,10 @@ const tlBicimi = new Intl.NumberFormat("tr-TR", {
 export function formatTL(kurus: number): string {
   return tlBicimi.format(kurus / 100);
 }
+
+// 56334 → "563,34" (form alanına yazılacak biçim, ₺ işareti yok)
+export function kurusuMetneCevir(kurus: number): string {
+  const lira = Math.floor(kurus / 100);
+  const kalan = String(kurus % 100).padStart(2, "0");
+  return `${lira},${kalan}`;
+}
