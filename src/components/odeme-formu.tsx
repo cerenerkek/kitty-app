@@ -37,8 +37,8 @@ export function OdemeFormu({
 
   return (
     <details className="rounded-lg border px-3 py-2">
-      <summary className="cursor-pointer text-sm font-medium">
-        Farklı bir tutar mı ödendi?
+      <summary className="cursor-pointer text-sm font-medium text-teal-700">
+        ➕ Başka bir ödeme kaydet (kısmi ya da farklı tutar)
       </summary>
 
       <form action={formAction} className="mt-3 flex flex-col gap-3">

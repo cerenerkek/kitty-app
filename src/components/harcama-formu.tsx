@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { harcamaEkle } from "@/app/harcamalar/actions";
 import { KATEGORILER } from "@/lib/kategoriler";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,24 @@ export function HarcamaFormu({
   const d = durum?.degerler;
   const seciliKisiler = d?.bolunenler ?? kisiler.map((k) => k.id);
 
+  // "Herkes / Temizle" butonları için forma erişim
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function kisileriSec(secilsinMi: boolean) {
+    formRef.current
+      ?.querySelectorAll<HTMLInputElement>('input[name="bolunenler"]')
+      .forEach((kutu) => {
+        kutu.checked = secilsinMi;
+      });
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Harcama ekle</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="flex flex-col gap-4">
+        <form ref={formRef} action={formAction} className="flex flex-col gap-4">
           <input type="hidden" name="grupId" value={grupId} />
 
           {/* Açıklama + Tutar */}
@@ -118,8 +129,24 @@ export function HarcamaFormu({
 
           {/* Kimler arasında bölünsün */}
           <fieldset className="flex flex-col gap-2">
-            <legend className="mb-1.5 text-sm font-medium">
-              Kimler arasında eşit bölünsün?
+            <legend className="mb-1.5 flex w-full items-center justify-between gap-2 text-sm font-medium">
+              <span>Kimler arasında eşit bölünsün?</span>
+              <span className="flex shrink-0 gap-1">
+                <button
+                  type="button"
+                  onClick={() => kisileriSec(true)}
+                  className="rounded-md border px-2 py-0.5 text-xs font-normal"
+                >
+                  Herkes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => kisileriSec(false)}
+                  className="rounded-md border px-2 py-0.5 text-xs font-normal"
+                >
+                  Temizle
+                </button>
+              </span>
             </legend>
             {kisiler.map((k) => (
               <label key={k.id} className="flex items-center gap-2 text-sm">

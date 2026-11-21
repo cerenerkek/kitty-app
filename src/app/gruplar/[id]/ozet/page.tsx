@@ -11,6 +11,7 @@ import {
 import { formatTL } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
 import { ayAdi, ayCozumle, ayinIlkGunu, ayKaydir, buAy } from "@/lib/ay";
+import { bugunIstanbul } from "@/lib/tarih";
 
 export const metadata: Metadata = { title: "Aylık özet · Kitty" };
 
@@ -53,9 +54,7 @@ export default async function AylikOzetSayfasi({
   if (!grup) notFound();
 
   // Hangi ay? Adresteki ?ay= geçersizse ya da yoksa → bu ay (İstanbul saatine göre)
-  const bugun = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Europe/Istanbul",
-  });
+  const bugun = bugunIstanbul();
   const simdikiAy = buAy(bugun);
   const ay = ayCozumle(ayParametresi, simdikiAy);
   const oncekiAy = ayKaydir(ay, -1);

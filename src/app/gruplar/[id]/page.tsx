@@ -10,6 +10,7 @@ import { HarcamaListesi, type Harcama } from "@/components/harcama-listesi";
 import { BakiyeKarti } from "@/components/bakiye-karti";
 import { OdemeGecmisi, type OdemeKaydi } from "@/components/odeme-gecmisi";
 import { buttonVariants } from "@/components/ui/button";
+import { bugunIstanbul } from "@/lib/tarih";
 
 export const metadata: Metadata = { title: "Grup · Kitty" };
 
@@ -38,63 +39,61 @@ export default async function GrupDetaySayfasi({
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  // RLS: üyesi değilsen grup hiç yokmuş gibi görünür → 404
-  const { data: grup } = await supabase
-    .from("groups")
-    .select("id, ad")
-    .eq("id", id)
-    .maybeSingle();
+  // 5 sorgu birbirinden bağımsız → hepsini AYNI ANDA gönder.
+  // RLS: üyesi olmadığın grupta hepsi boş döner; grup boşsa 404.
+  const [
+    { data: grup },
+    { data: uyeler },
+    { data: harcamalar },
+    { data: bakiyeVerisi },
+    { data: odemeKayitlari },
+  ] = await Promise.all([
+    supabase.from("groups").select("id, ad").eq("id", id).maybeSingle(),
+
+    supabase
+      .from("group_members")
+      .select("user_id, rol, profiles(ad_soyad)")
+      .eq("group_id", id)
+      .order("katilma_tarihi")
+      .overrideTypes<Uye[], { merge: false }>(),
+
+    supabase
+      .from("expenses")
+      .select(
+        "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, expense_splits(user_id, pay_kurus)",
+      )
+      .eq("group_id", id)
+      .order("tarih", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .overrideTypes<Harcama[], { merge: false }>(),
+
+    supabase.rpc("grup_bakiyeleri", { p_grup_id: id }),
+
+    supabase
+      .from("settlements")
+      .select("id, odeyen_id, alan_id, tutar_kurus, tarih")
+      .eq("group_id", id)
+      .order("tarih", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .overrideTypes<OdemeKaydi[], { merge: false }>(),
+  ]);
   if (!grup) notFound();
 
-  // Üyeler + adları (profiles tablosuyla birleştirme)
-  const { data: uyeler } = await supabase
-    .from("group_members")
-    .select("user_id, rol, profiles(ad_soyad)")
-    .eq("group_id", id)
-    .order("katilma_tarihi")
-    .overrideTypes<Uye[], { merge: false }>();
-
-  // Form için sade kişi listesi: [{ id, ad }]
+  // Form için sade kişi listesi ve id → ad sözlüğü
   const kisiler = (uyeler ?? []).map((u) => ({
     id: u.user_id,
     ad: u.profiles?.ad_soyad ?? "İsimsiz",
   }));
-
-  // Bugünün tarihi İstanbul saatine göre, "2026-11-19" biçiminde
-  const bugun = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Europe/Istanbul",
-  });
-  // Son 50 harcama, paylarıyla birlikte (RLS: sadece bu grubun üyesiysen gelir)
-  const { data: harcamalar } = await supabase
-    .from("expenses")
-    .select(
-      "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, expense_splits(user_id, pay_kurus)",
-    )
-    .eq("group_id", id)
-    .order("tarih", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(50)
-    .overrideTypes<Harcama[], { merge: false }>();
-
-  // Ödeyen adını bulmak için: id → ad sözlüğü
   const isimler = new Map(kisiler.map((k) => [k.id, k.ad]));
-  // Her üyenin net bakiyesi (veritabanı hesaplar, RLS: sadece üyeysen gelir)
-  const { data: bakiyeVerisi } = await supabase.rpc("grup_bakiyeleri", {
-    p_grup_id: id,
-  });
+
+  // Veritabanı biçimi → algoritmanın biçimi
   const bakiyeler = (
     (bakiyeVerisi ?? []) as { uye_id: string; net_kurus: number }[]
   ).map((b) => ({ id: b.uye_id, net: Number(b.net_kurus) }));
 
-  // Son 20 ödeme kaydı (RLS: sadece üyeysen gelir)
-  const { data: odemeKayitlari } = await supabase
-    .from("settlements")
-    .select("id, odeyen_id, alan_id, tutar_kurus, tarih")
-    .eq("group_id", id)
-    .order("tarih", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(20)
-    .overrideTypes<OdemeKaydi[], { merge: false }>();
+  const bugun = bugunIstanbul();
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">

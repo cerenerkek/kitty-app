@@ -12,7 +12,31 @@ import {
 } from "@/components/ui/card";
 import { DavetKatilFormu } from "@/components/davet-katil-formu";
 
-export const metadata: Metadata = { title: "Davet · Kitty" };
+export const metadata: Metadata = {
+  title: "Gruba davet · Kitty",
+  description:
+    "Bir arkadaşın seni Kitty'de ortak harcama grubuna davet etti. Katılmak için dokun.",
+  // Dikkat: openGraph üst seviyedekiyle BİRLEŞMEZ, tamamen yerine geçer.
+  // Bu yüzden görsel, site adı ve dil burada tekrar yazılıyor.
+  openGraph: {
+    title: "Kitty'de bir gruba davet edildin 🐱",
+    description:
+      "Harcamaları birlikte takip edin, kim kime ne kadar borçlu Kitty hesaplasın.",
+    siteName: "Kitty",
+    locale: "tr_TR",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Kitty – Ortak harcama uygulaması",
+      },
+    ],
+  },
+  // Davet linkleri kişiye özel: arama motorları listelemesin
+  robots: { index: false, follow: false },
+};
 
 type DavetBilgisi = {
   grup_id: string;

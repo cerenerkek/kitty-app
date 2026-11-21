@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
+import { formatGun } from "@/lib/tarih";
 
 export type Harcama = {
   id: string;
@@ -11,14 +12,6 @@ export type Harcama = {
   odeyen_id: string;
   expense_splits: { user_id: string; pay_kurus: number }[];
 };
-
-// "2026-11-19" → "19 Kas"
-// timeZone UTC: tarih saatsiz bir gün; saat dilimi kaydırıp bir önceki güne düşürmesin
-const tarihBicimi = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
 
 export function HarcamaListesi({
   harcamalar,
@@ -68,7 +61,7 @@ export function HarcamaListesi({
                     <p className="truncate font-medium">{h.aciklama}</p>
                     <p className="text-xs text-muted-foreground">
                       {odeyenMetni} · {h.expense_splits.length} kişi ·{" "}
-                      {tarihBicimi.format(new Date(h.tarih))}
+                      {formatGun(h.tarih)}
                     </p>
                   </div>
 

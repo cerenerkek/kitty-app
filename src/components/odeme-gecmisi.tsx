@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
+import { formatGun } from "@/lib/tarih";
 
 export type OdemeKaydi = {
   id: string;
@@ -8,12 +9,6 @@ export type OdemeKaydi = {
   tutar_kurus: number;
   tarih: string;
 };
-
-const tarihBicimi = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
 
 export function OdemeGecmisi({
   odemeler,
@@ -52,7 +47,7 @@ export function OdemeGecmisi({
                     <b>{ad(o.odeyen_id)}</b> → <b>{ad(o.alan_id)}</b>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    ödedi · {tarihBicimi.format(new Date(o.tarih))}
+                    ödedi · {formatGun(o.tarih)}
                   </p>
                 </div>
                 <p className="font-semibold tabular-nums">

@@ -1,0 +1,27 @@
+import { ImageResponse } from "next/og";
+
+// Tarayıcı sekmesindeki simge
+export const size = { width: 32, height: 32 };
+export const contentType = "image/png";
+
+export default function Simge() {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#0f766e",
+          borderRadius: 8,
+          fontSize: 22,
+        }}
+      >
+        🐱
+      </div>
+    ),
+    { ...size },
+  );
+}
