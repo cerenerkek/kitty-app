@@ -9,6 +9,7 @@ import { HarcamaFormu } from "@/components/harcama-formu";
 import { HarcamaListesi, type Harcama } from "@/components/harcama-listesi";
 import { BakiyeKarti } from "@/components/bakiye-karti";
 import { OdemeGecmisi, type OdemeKaydi } from "@/components/odeme-gecmisi";
+import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Grup · Kitty" };
 
@@ -101,7 +102,15 @@ export default async function GrupDetaySayfasi({
         ← Gruplarım
       </Link>
 
-      <h1 className="text-2xl font-bold">{grup.ad}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">{grup.ad}</h1>
+        <Link
+          href={`/gruplar/${grup.id}/ozet`}
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          📊 Aylık özet
+        </Link>
+      </div>
 
       <BakiyeKarti
         grupId={grup.id}
