@@ -127,9 +127,14 @@ export default async function GrupDetaySayfasi({
 
   const bugun = bugunIstanbul();
 
+  // Düzen:
+  //   telefon     → tek sütun (order-N sırasıyla: bakiye, form, liste, ödemeler…)
+  //   lg (≥1024)  → 2 sütun; geçmiş kartları alt satırda yan yana
+  //   xl (≥1280)  → 3 sütun: [bakiye · üyeler · davet] [form · harcamalar] [ödemeler · değişiklikler]
+  // Sütun kutuları telefonda "contents": kaybolur, kartlar tek akışta order ile sıralanır.
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
-      <Link href="/gruplar" className="text-sm text-muted-foreground">
+    <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8 lg:max-w-none lg:px-6">
+      <Link href="/gruplar" className="text-sm text-muted-foreground lg:hidden">
         ← Gruplarım
       </Link>
 
@@ -143,66 +148,93 @@ export default async function GrupDetaySayfasi({
         </Link>
       </div>
 
-      <BakiyeKarti
-        grupId={grup.id}
-        bakiyeler={bakiyeler}
-        kisiler={kisiler}
-        isimler={isimler}
-        benimId={user.id}
-        bugun={bugun}
-      />
-      <HarcamaFormu
-        grupId={grup.id}
-        kisiler={kisiler}
-        benimId={user.id}
-        bugun={bugun}
-      />
-      <HarcamaListesi
-        grupId={grup.id}
-        harcamalar={harcamalar ?? []}
-        isimler={isimler}
-        benimId={user.id}
-        yoneticiyim={yoneticiyim}
-        fisLinkleri={fisLinkleri}
-      />
-      <OdemeGecmisi
-        odemeler={odemeKayitlari ?? []}
-        isimler={isimler}
-        benimId={user.id}
-      />
-      <DegisiklikGecmisi
-        kayitlar={gecmis ?? []}
-        isimler={isimler}
-        benimId={user.id}
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Üyeler ({uyeler?.length ?? 0})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="flex flex-col gap-2">
-            {uyeler?.map((u) => (
-              <li key={u.user_id} className="flex items-center justify-between">
-                <span>
-                  {u.profiles?.ad_soyad ?? "İsimsiz"}
-                  {u.user_id === user.id && (
-                    <span className="text-muted-foreground"> (sen)</span>
-                  )}
-                </span>
-                {u.rol === "admin" && (
-                  <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
-                    Yönetici
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)]">
+        {/* 1. sütun: kim kime borçlu + grup bilgisi */}
+        <div className="contents lg:flex lg:flex-col lg:gap-6">
+          <div className="order-1 lg:order-none">
+            <BakiyeKarti
+              grupId={grup.id}
+              bakiyeler={bakiyeler}
+              kisiler={kisiler}
+              isimler={isimler}
+              benimId={user.id}
+              bugun={bugun}
+            />
+          </div>
+          <Card className="order-6 lg:order-none">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Üyeler ({uyeler?.length ?? 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="flex flex-col gap-2">
+                {uyeler?.map((u) => (
+                  <li
+                    key={u.user_id}
+                    className="flex items-center justify-between"
+                  >
+                    <span>
+                      {u.profiles?.ad_soyad ?? "İsimsiz"}
+                      {u.user_id === user.id && (
+                        <span className="text-muted-foreground"> (sen)</span>
+                      )}
+                    </span>
+                    {u.rol === "admin" && (
+                      <span className="rounded-full bg-vurgu px-2 py-0.5 text-xs font-medium text-vurgu-yazi">
+                        Yönetici
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+          <div className="order-7 lg:order-none">
+            <DavetPaylas grupId={grup.id} grupAdi={grup.ad} />
+          </div>
+        </div>
 
-      <DavetPaylas grupId={grup.id} grupAdi={grup.ad} />
+        {/* 2. sütun: en sık yapılan iş — harcama ekle ve liste */}
+        <div className="contents lg:flex lg:flex-col lg:gap-6">
+          <div className="order-2 lg:order-none">
+            <HarcamaFormu
+              grupId={grup.id}
+              kisiler={kisiler}
+              benimId={user.id}
+              bugun={bugun}
+            />
+          </div>
+          <div className="order-3 lg:order-none">
+            <HarcamaListesi
+              grupId={grup.id}
+              harcamalar={harcamalar ?? []}
+              isimler={isimler}
+              benimId={user.id}
+              yoneticiyim={yoneticiyim}
+              fisLinkleri={fisLinkleri}
+            />
+          </div>
+        </div>
+
+        {/* 3. sütun: geçmiş (lg'de alt satırda iki kart yan yana) */}
+        <div className="contents lg:col-span-2 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 xl:col-span-1 xl:flex xl:flex-col">
+          <div className="order-4 lg:order-none">
+            <OdemeGecmisi
+              odemeler={odemeKayitlari ?? []}
+              isimler={isimler}
+              benimId={user.id}
+            />
+          </div>
+          <div className="order-5 lg:order-none">
+            <DegisiklikGecmisi
+              kayitlar={gecmis ?? []}
+              isimler={isimler}
+              benimId={user.id}
+            />
+          </div>
+        </div>
+      </div>
     </main>
   );
 }

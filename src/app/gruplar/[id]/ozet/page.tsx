@@ -80,7 +80,7 @@ export default async function AylikOzetSayfasi({
   const ozetAdresi = (a: string) => `/gruplar/${id}/ozet?ay=${a}`;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8 lg:max-w-5xl lg:px-8">
       <Link href={`/gruplar/${id}`} className="text-sm text-muted-foreground">
         ← {grup.ad}
       </Link>
@@ -88,7 +88,10 @@ export default async function AylikOzetSayfasi({
       <h1 className="text-2xl font-bold">Aylık özet</h1>
 
       {/* Ay seçimi */}
-      <nav aria-label="Ay seçimi" className="flex items-center justify-between text-sm">
+      <nav
+        aria-label="Ay seçimi"
+        className="flex items-center justify-between text-sm"
+      >
         <Link href={ozetAdresi(oncekiAy)} className="text-muted-foreground">
           ‹ {ayAdi(oncekiAy)}
         </Link>
@@ -109,7 +112,9 @@ export default async function AylikOzetSayfasi({
           <p className="mt-1 text-xl font-bold tabular-nums">
             {formatTL(grupToplami)}
           </p>
-          <p className="text-xs text-muted-foreground">{harcamaSayisi} harcama</p>
+          <p className="text-xs text-muted-foreground">
+            {harcamaSayisi} harcama
+          </p>
         </div>
         <div className="rounded-xl border p-4">
           <p className="text-xs text-muted-foreground">Senin payın</p>
@@ -131,7 +136,8 @@ export default async function AylikOzetSayfasi({
           </CardContent>
         </Card>
       ) : (
-        <>
+        // Bilgisayarda grafik solda, ayrıntı tablosu sağda
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
           {/* Grafik */}
           <Card>
             <CardHeader>
@@ -181,7 +187,7 @@ export default async function AylikOzetSayfasi({
               </table>
             </CardContent>
           </Card>
-        </>
+        </div>
       )}
 
       <p className="text-xs text-muted-foreground">

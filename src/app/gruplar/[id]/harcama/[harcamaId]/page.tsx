@@ -107,7 +107,7 @@ export default async function HarcamaDetaySayfasi({
   const kategori = kategoriBilgisi(harcama.kategori);
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8 lg:max-w-5xl lg:px-8">
       <Link href={`/gruplar/${id}`} className="text-sm text-muted-foreground">
         ← Gruba dön
       </Link>
@@ -116,83 +116,95 @@ export default async function HarcamaDetaySayfasi({
         {kategori.emoji} {harcama.aciklama}
       </h1>
 
-      {/* Özet */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl tabular-nums">
-            {formatTL(harcama.tutar_kurus)}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 text-sm">
-          <p className="text-muted-foreground">
-            {ad(harcama.odeyen_id)} ödedi · {kategori.ad} ·{" "}
-            {formatGun(harcama.tarih)}
-          </p>
-          <ul className="flex flex-col gap-1">
-            {harcama.expense_splits.map((s) => (
-              <li key={s.user_id} className="flex justify-between">
-                <span>{ad(s.user_id)}</span>
-                <span className="tabular-nums">{formatTL(s.pay_kurus)}</span>
-              </li>
-            ))}
-          </ul>
-          {fisLinki && (
-            <a
-              href={fisLinki}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-fit"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- 1 saatlik imzalı link, optimize edilecek bir şey yok */}
-              <img
-                src={fisLinki}
-                alt={`"${harcama.aciklama}" harcamasının fişi`}
-                className="max-h-64 rounded-md border object-contain"
-              />
-            </a>
-          )}
-        </CardContent>
-      </Card>
-
-      {degistirebilirim ? (
-        <>
-          <HarcamaFormu
-            grupId={id}
-            kisiler={kisiler}
-            benimId={user.id}
-            bugun={bugunIstanbul()}
-            mevcutFisVar={Boolean(harcama.fis_yolu)}
-            duzenlenen={{
-              id: harcama.id,
-              aciklama: harcama.aciklama,
-              tutar: kurusuMetneCevir(harcama.tutar_kurus),
-              kategori: harcama.kategori,
-              tarih: harcama.tarih,
-              odeyen: harcama.odeyen_id,
-              bolunenler: harcama.expense_splits.map((s) => s.user_id),
-            }}
-          />
-          <div className="flex justify-end">
-            <HarcamaSilButonu
-              harcamaId={harcama.id}
-              aciklama={harcama.aciklama}
-              tutarMetni={formatTL(harcama.tutar_kurus)}
-              sonraGit={`/gruplar/${id}`}
+      {/* Telefon: özet → düzenleme → geçmiş. Bilgisayar: solda özet + geçmiş, sağda düzenleme */}
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
+        <div className="contents lg:flex lg:flex-col lg:gap-6">
+          <div className="order-1 lg:order-none">
+            {/* Özet */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl tabular-nums">
+                  {formatTL(harcama.tutar_kurus)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 text-sm">
+                <p className="text-muted-foreground">
+                  {ad(harcama.odeyen_id)} ödedi · {kategori.ad} ·{" "}
+                  {formatGun(harcama.tarih)}
+                </p>
+                <ul className="flex flex-col gap-1">
+                  {harcama.expense_splits.map((s) => (
+                    <li key={s.user_id} className="flex justify-between">
+                      <span>{ad(s.user_id)}</span>
+                      <span className="tabular-nums">
+                        {formatTL(s.pay_kurus)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {fisLinki && (
+                  <a
+                    href={fisLinki}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-fit"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 1 saatlik imzalı link, optimize edilecek bir şey yok */}
+                    <img
+                      src={fisLinki}
+                      alt={`"${harcama.aciklama}" harcamasının fişi`}
+                      className="max-h-64 rounded-md border object-contain"
+                    />
+                  </a>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <div className="order-3 lg:order-none">
+            <DegisiklikGecmisi
+              kayitlar={gecmis ?? []}
+              isimler={isimler}
+              benimId={user.id}
+              baslik="Bu harcamanın geçmişi"
             />
           </div>
-        </>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Bu harcamayı sadece ekleyen kişi ya da grup yöneticisi değiştirebilir.
-        </p>
-      )}
-
-      <DegisiklikGecmisi
-        kayitlar={gecmis ?? []}
-        isimler={isimler}
-        benimId={user.id}
-        baslik="Bu harcamanın geçmişi"
-      />
+        </div>
+        <div className="order-2 flex flex-col gap-6 lg:order-none">
+          {degistirebilirim ? (
+            <>
+              <HarcamaFormu
+                grupId={id}
+                kisiler={kisiler}
+                benimId={user.id}
+                bugun={bugunIstanbul()}
+                mevcutFisVar={Boolean(harcama.fis_yolu)}
+                duzenlenen={{
+                  id: harcama.id,
+                  aciklama: harcama.aciklama,
+                  tutar: kurusuMetneCevir(harcama.tutar_kurus),
+                  kategori: harcama.kategori,
+                  tarih: harcama.tarih,
+                  odeyen: harcama.odeyen_id,
+                  bolunenler: harcama.expense_splits.map((s) => s.user_id),
+                }}
+              />
+              <div className="flex justify-end">
+                <HarcamaSilButonu
+                  harcamaId={harcama.id}
+                  aciklama={harcama.aciklama}
+                  tutarMetni={formatTL(harcama.tutar_kurus)}
+                  sonraGit={`/gruplar/${id}`}
+                />
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Bu harcamayı sadece ekleyen kişi ya da grup yöneticisi
+              değiştirebilir.
+            </p>
+          )}
+        </div>
+      </div>
     </main>
   );
 }

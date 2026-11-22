@@ -46,15 +46,15 @@ export function BakiyeKarti({
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         {/* 1) Benim durumum: tek cümle */}
-        <p className="rounded-lg bg-muted px-3 py-2 text-sm">
+        <p className="rounded-lg bg-vurgu px-3 py-2 text-sm text-vurgu-yazi">
           {benimNet > 0 ? (
             <>
-              Toplam <b className="text-teal-700">{formatTL(benimNet)}</b>{" "}
+              Toplam <b className="text-alacakli">{formatTL(benimNet)}</b>{" "}
               alacaklısın.
             </>
           ) : benimNet < 0 ? (
             <>
-              Toplam <b className="text-red-700">{formatTL(-benimNet)}</b>{" "}
+              Toplam <b className="text-borclu">{formatTL(-benimNet)}</b>{" "}
               borçlusun.
             </>
           ) : (
@@ -78,9 +78,9 @@ export function BakiyeKarti({
               <span
                 className={`font-semibold tabular-nums ${
                   b.net > 0
-                    ? "text-teal-700"
+                    ? "text-alacakli"
                     : b.net < 0
-                      ? "text-red-700"
+                      ? "text-borclu"
                       : "text-muted-foreground"
                 }`}
               >
@@ -97,7 +97,7 @@ export function BakiyeKarti({
           </h3>
 
           {oneriler === null ? (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-destructive">
               Bakiyeler hesaplanamadı. Lütfen sayfayı yenile.
             </p>
           ) : oneriler.length === 0 ? (
@@ -112,7 +112,7 @@ export function BakiyeKarti({
                     key={`${o.kimden}-${o.kime}`}
                     className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm ${
                       benOdeyecegim || benAlacagim
-                        ? "border-teal-200 bg-teal-50"
+                        ? "border-vurgu-kenar bg-vurgu"
                         : ""
                     }`}
                   >

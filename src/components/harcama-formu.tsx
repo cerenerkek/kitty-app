@@ -216,7 +216,7 @@ export function HarcamaFormu({
                   name="bolunenler"
                   value={k.id}
                   defaultChecked={seciliKisiler.includes(k.id)}
-                  className="size-4 accent-teal-700"
+                  className="size-4 accent-primary"
                 />
                 {k.ad}
                 {k.id === benimId && (
@@ -253,24 +253,24 @@ export function HarcamaFormu({
               />
             )}
             {fisHata && (
-              <p role="alert" className="text-xs text-red-700">
+              <p role="alert" className="text-xs text-destructive">
                 {fisHata}
               </p>
             )}
           </div>
 
           {durum?.hata && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-destructive">
               {durum.hata}
             </p>
           )}
           {durum?.basarili && !duzenlenen && (
-            <p role="status" className="text-sm text-teal-700">
+            <p role="status" className="text-sm text-marka">
               Harcama eklendi ✓
             </p>
           )}
           {durum?.uyari && (
-            <p role="alert" className="text-sm text-amber-700">
+            <p role="alert" className="text-sm text-uyari">
               {durum.uyari}
             </p>
           )}

@@ -33,7 +33,7 @@ export function OdemeGecmisi({
             Henüz ödeme kaydı yok.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y">
+          <ul className="flex flex-col divide-y lg:max-h-[24rem] lg:overflow-y-auto lg:pr-1">
             {odemeler.map((o) => (
               <li
                 key={o.id}

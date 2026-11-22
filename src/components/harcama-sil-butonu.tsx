@@ -42,12 +42,12 @@ export function HarcamaSilButonu({
         onClick={sil}
         disabled={bekliyor}
         aria-label={`"${aciklama}" harcamasını sil`}
-        className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:text-red-700 disabled:opacity-50"
+        className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:text-destructive disabled:opacity-50"
       >
         {bekliyor ? "Siliniyor…" : "🗑️ Sil"}
       </button>
       {hata && (
-        <p role="alert" className="max-w-40 text-right text-xs text-red-700">
+        <p role="alert" className="max-w-40 text-right text-xs text-destructive">
           {hata}
         </p>
       )}

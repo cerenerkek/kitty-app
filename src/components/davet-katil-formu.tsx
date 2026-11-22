@@ -14,7 +14,7 @@ export function DavetKatilFormu({ token }: { token: string }) {
         {bekliyor ? "Katılıyorsun..." : "Gruba katıl"}
       </Button>
       {durum?.hata && (
-        <p role="alert" className="text-center text-sm text-red-700">
+        <p role="alert" className="text-center text-sm text-destructive">
           {durum.hata}
         </p>
       )}

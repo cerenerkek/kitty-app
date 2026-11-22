@@ -12,7 +12,7 @@ export default function GirisSayfasi() {
         <Link href="/" className="text-4xl" aria-label="Ana sayfa">
           🐱
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-teal-700">
+        <h1 className="mt-2 text-2xl font-bold text-marka">
           Tekrar hoş geldin
         </h1>
         <p className="text-sm text-muted-foreground">Hesabına giriş yap.</p>
@@ -24,7 +24,7 @@ export default function GirisSayfasi() {
 
       <p className="text-center text-sm text-muted-foreground">
         Hesabın yok mu?{" "}
-        <Link href="/kayit" className="font-medium text-teal-700 underline">
+        <Link href="/kayit" className="font-medium text-marka underline">
           Kayıt ol
         </Link>
       </p>

@@ -12,7 +12,7 @@ export default function KayitSayfasi() {
         <Link href="/" className="text-4xl" aria-label="Ana sayfa">
           🐱
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-teal-700">Kitty&apos;ye katıl</h1>
+        <h1 className="mt-2 text-2xl font-bold text-marka">Kitty&apos;ye katıl</h1>
         <p className="text-sm text-muted-foreground">
           Grubunu kur, harcamaları birlikte takip et.
         </p>
@@ -24,7 +24,7 @@ export default function KayitSayfasi() {
 
       <p className="text-center text-sm text-muted-foreground">
         Zaten hesabın var mı?{" "}
-        <Link href="/giris" className="font-medium text-teal-700 underline">
+        <Link href="/giris" className="font-medium text-marka underline">
           Giriş yap
         </Link>
       </p>

@@ -52,7 +52,7 @@ export function DegisiklikGecmisi({
         {kayitlar.length === 0 ? (
           <p className="text-sm text-muted-foreground">Henüz değişiklik yok.</p>
         ) : (
-          <ul className="flex flex-col divide-y">
+          <ul className="flex flex-col divide-y lg:max-h-[24rem] lg:overflow-y-auto lg:pr-1">
             {kayitlar.map((k) => {
               const benMiyim = k.yapan_id === benimId;
               const kim = benMiyim

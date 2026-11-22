@@ -99,7 +99,7 @@ export default async function DavetSayfasi({
             <CardDescription>
               {davet.davet_eden ?? "Bir arkadaşın"} seni davet ediyor
             </CardDescription>
-            <CardTitle className="text-2xl text-teal-700">{davet.grup_adi}</CardTitle>
+            <CardTitle className="text-2xl text-marka">{davet.grup_adi}</CardTitle>
             <CardDescription>{davet.uye_sayisi} üye</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">

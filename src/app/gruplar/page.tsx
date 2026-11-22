@@ -3,8 +3,6 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { cikisYap } from "@/app/auth/actions";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -37,24 +35,19 @@ export default async function GruplarSayfasi() {
   ]);
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
-      <header className="flex items-center justify-between">
-        <span className="text-xl font-bold text-teal-700">🐱 Kitty</span>
-        <form action={cikisYap}>
-          <Button type="submit" variant="ghost" size="sm">
-            Çıkış yap
-          </Button>
-        </form>
-      </header>
-
+    // Telefonda tek sütun; bilgisayarda geniş alan ve gruplar ızgara halinde
+    <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8 lg:max-w-5xl lg:px-8">
       <section>
         <h1 className="text-2xl font-bold">
-          Merhaba {profil?.ad_soyad ?? user.email} 
+          Merhaba {profil?.ad_soyad ?? user.email}
         </h1>
         <p className="text-muted-foreground">Gruplarını buradan yönet.</p>
       </section>
 
-      <GrupOlusturFormu />
+      {/* Kenar çubuğundaki "Yeni grup" bağlantısı buraya getirir */}
+      <div id="yeni-grup" className="scroll-mt-20 lg:max-w-md">
+        <GrupOlusturFormu />
+      </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-muted-foreground">
@@ -71,22 +64,24 @@ export default async function GruplarSayfasi() {
             </CardHeader>
           </Card>
         ) : (
-          gruplar.map((g) => (
-            <Link
-              key={g.id}
-              href={`/gruplar/${g.id}`}
-              className="block rounded-xl transition hover:opacity-80"
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">{g.ad}</CardTitle>
-                  <CardDescription>
-                    {g.group_members[0]?.count ?? 0} üye
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          ))
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {gruplar.map((g) => (
+              <Link
+                key={g.id}
+                href={`/gruplar/${g.id}`}
+                className="block rounded-xl transition hover:opacity-80"
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">{g.ad}</CardTitle>
+                    <CardDescription>
+                      {g.group_members[0]?.count ?? 0} üye
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ))}
+          </div>
         )}
       </section>
     </main>

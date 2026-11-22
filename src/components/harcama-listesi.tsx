@@ -43,7 +43,7 @@ export function HarcamaListesi({
             Henüz harcama yok. İlkini yukarıdan ekle.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y">
+          <ul className="flex flex-col divide-y lg:max-h-[36rem] lg:overflow-y-auto lg:pr-1">
             {harcamalar.map((h) => {
               const kategori = kategoriBilgisi(h.kategori);
               const odeyenMetni =
@@ -88,7 +88,7 @@ export function HarcamaListesi({
                             href={fisLinki}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-medium text-teal-700 underline"
+                            className="font-medium text-marka underline"
                           >
                             📎 Fiş
                           </a>

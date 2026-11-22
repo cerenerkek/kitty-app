@@ -52,7 +52,7 @@ export function KayitFormu() {
       {durum?.hata && (
         <p
           role="alert"
-          className="rounded-md bg-red-50 p-3 text-sm text-red-700"
+          className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
         >
           {durum.hata}
         </p>

@@ -42,7 +42,7 @@ export function OdendiButonu({
         {bekliyor ? "Kaydediliyor..." : etiket}
       </Button>
       {durum?.hata && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="text-xs text-destructive">
           {durum.hata}
         </p>
       )}

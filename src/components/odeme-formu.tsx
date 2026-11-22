@@ -37,7 +37,7 @@ export function OdemeFormu({
 
   return (
     <details className="rounded-lg border px-3 py-2">
-      <summary className="cursor-pointer text-sm font-medium text-teal-700">
+      <summary className="cursor-pointer text-sm font-medium text-marka">
         ➕ Başka bir ödeme kaydet (kısmi ya da farklı tutar)
       </summary>
 
@@ -89,12 +89,12 @@ export function OdemeFormu({
         </div>
 
         {durum?.hata && (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="text-sm text-destructive">
             {durum.hata}
           </p>
         )}
         {durum?.basarili && (
-          <p role="status" className="text-sm text-teal-700">
+          <p role="status" className="text-sm text-marka">
             Ödeme kaydedildi ✓
           </p>
         )}

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,5 +28,7 @@ export async function davetKatil(
     return { hata: "Gruba katılamadın. Lütfen tekrar dene." };
   }
 
+  // Kenar çubuğundaki grup listesi de yenilensin (yeni grup görünsün)
+  revalidatePath("/gruplar", "layout");
   redirect(`/gruplar/${grupId}`);
 }

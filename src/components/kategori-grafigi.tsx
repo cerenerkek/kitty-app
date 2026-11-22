@@ -23,10 +23,11 @@ export type KategoriOzeti = {
 type Olcu = "grup" | "benim";
 
 // Tek renk: grafik büyüklük karşılaştırıyor, kategori adı zaten çubuğun yanında.
-// teal-600 → renk kontrol aracından geçti (parlaklık, doygunluk, kontrast).
-const CUBUK_RENGI = "#0d9488";
-const YAZI_RENGI = "#171717"; // yazılar çubuk renginde değil, normal yazı renginde
-const VURGU_ZEMINI = "#f4f4f5"; // fareyle üstüne gelinen satırın arka planı
+// Renkler tema değişkenlerinden gelir → açık ve koyu modda otomatik değişir.
+// (--grafik iki mod için ayrı ayrı renk kontrol aracından geçti.)
+const CUBUK_RENGI = "var(--grafik)";
+const YAZI_RENGI = "var(--foreground)"; // yazılar çubuk renginde değil, normal yazı renginde
+const VURGU_ZEMINI = "var(--muted)"; // fareyle üstüne gelinen satırın arka planı
 
 export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
   const [olcu, setOlcu] = useState<Olcu>("grup");
@@ -88,6 +89,15 @@ export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
             <Tooltip
               cursor={{ fill: VURGU_ZEMINI }}
               formatter={(deger) => [formatTL(Number(deger)), olcuAdi]}
+              // Bilgi kutusu da temaya uysun (varsayılanı her zaman beyaz)
+              contentStyle={{
+                background: "var(--popover)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                color: "var(--popover-foreground)",
+              }}
+              itemStyle={{ color: "var(--popover-foreground)" }}
+              labelStyle={{ color: "var(--muted-foreground)" }}
             />
             <Bar
               dataKey="tutar"

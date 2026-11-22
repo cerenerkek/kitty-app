@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -39,6 +40,8 @@ export async function grupOlustur(
     };
   }
 
+  // Kenar çubuğundaki grup listesi de yenilensin (yeni grup görünsün)
+  revalidatePath("/gruplar", "layout");
   redirect(`/gruplar/${grupId}`);
 }
 
