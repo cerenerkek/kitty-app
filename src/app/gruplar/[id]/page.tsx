@@ -65,7 +65,7 @@ export default async function GrupDetaySayfasi({
     supabase
       .from("expenses")
       .select(
-        "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, olusturan_id, expense_splits(user_id, pay_kurus)",
+        "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, olusturan_id, fis_yolu, expense_splits(user_id, pay_kurus)",
       )
       .eq("group_id", id)
       .order("tarih", { ascending: false })
@@ -94,6 +94,20 @@ export default async function GrupDetaySayfasi({
       .overrideTypes<GecmisKaydi[], { merge: false }>(),
   ]);
   if (!grup) notFound();
+
+  // Fişler gizli klasörde: her biri için 1 saat geçerli imzalı link (tek istekte)
+  const fisYollari = (harcamalar ?? [])
+    .map((h) => h.fis_yolu)
+    .filter((y): y is string => Boolean(y));
+  const fisLinkleri = new Map<string, string>();
+  if (fisYollari.length > 0) {
+    const { data: imzali } = await supabase.storage
+      .from("fisler")
+      .createSignedUrls(fisYollari, 60 * 60);
+    for (const s of imzali ?? []) {
+      if (s.path && s.signedUrl) fisLinkleri.set(s.path, s.signedUrl);
+    }
+  }
 
   // Yönetici, gruptaki her harcamayı silebilir (veritabanı kuralıyla aynı)
   const yoneticiyim =
@@ -148,6 +162,7 @@ export default async function GrupDetaySayfasi({
         isimler={isimler}
         benimId={user.id}
         yoneticiyim={yoneticiyim}
+        fisLinkleri={fisLinkleri}
       />
       <OdemeGecmisi
         odemeler={odemeKayitlari ?? []}

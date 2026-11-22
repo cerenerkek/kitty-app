@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 import { harcamaEkle } from "@/app/harcamalar/actions";
 import { KATEGORILER } from "@/lib/kategoriler";
+import { FIS_EN_BUYUK_BOYUT, fisTuruGecerli } from "@/lib/gorsel";
+import { fisiKucult } from "@/lib/gorsel-tarayici";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,13 +44,54 @@ export function HarcamaFormu({
       });
   }
 
+  // Fiş fotoğrafı: seçilince telefonda küçültülür, input'taki dosya küçüğüyle değiştirilir
+  const [kucultuluyor, setKucultuluyor] = useState(false);
+  const [onizleme, setOnizleme] = useState<string | null>(null);
+  const [fisHata, setFisHata] = useState<string | null>(null);
+
+  async function fisSecildi(e: React.ChangeEvent<HTMLInputElement>) {
+    const input = e.currentTarget; // await'ten önce sakla
+    const dosya = input.files?.[0];
+    setFisHata(null);
+    setOnizleme(null);
+    if (!dosya) return;
+
+    setKucultuluyor(true);
+    try {
+      const kucuk = await fisiKucult(dosya);
+      const aktarim = new DataTransfer();
+      aktarim.items.add(kucuk);
+      input.files = aktarim.files; // form artık küçük dosyayı gönderecek
+      setOnizleme(URL.createObjectURL(kucuk));
+    } catch {
+      // Küçültülemedi: zaten uygun türde ve küçükse olduğu gibi gönder
+      if (fisTuruGecerli(dosya.type) && dosya.size <= FIS_EN_BUYUK_BOYUT - 100 * 1024) {
+        setOnizleme(URL.createObjectURL(dosya));
+      } else {
+        input.value = "";
+        setFisHata("Bu fotoğraf kullanılamadı. Başka bir fotoğraf (JPEG/PNG) seç.");
+      }
+    } finally {
+      setKucultuluyor(false);
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Harcama ekle</CardTitle>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} action={formAction} className="flex flex-col gap-4">
+        <form
+          ref={formRef}
+          action={formAction}
+          // Başarılı gönderimden sonra React formu sıfırlar → önizlemeyi de temizle
+          onReset={() => {
+            setOnizleme(null);
+            setFisHata(null);
+          }}
+          className="flex flex-col gap-4"
+        >
           <input type="hidden" name="grupId" value={grupId} />
 
           {/* Açıklama + Tutar */}
@@ -165,6 +208,35 @@ export function HarcamaFormu({
             ))}
           </fieldset>
 
+          {/* Fiş fotoğrafı (isteğe bağlı) */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="fis">📷 Fiş fotoğrafı (isteğe bağlı)</Label>
+            <input
+              id="fis"
+              name="fis"
+              type="file"
+              accept="image/*"
+              onChange={fisSecildi}
+              className="text-sm file:mr-3 file:rounded-md file:border file:bg-transparent file:px-2.5 file:py-1 file:text-sm"
+            />
+            {kucultuluyor && (
+              <p className="text-xs text-muted-foreground">Fotoğraf küçültülüyor…</p>
+            )}
+            {onizleme && (
+              // eslint-disable-next-line @next/next/no-img-element -- yerel önizleme (blob:), optimize edilecek bir şey yok
+              <img
+                src={onizleme}
+                alt="Seçilen fişin önizlemesi"
+                className="h-24 w-fit rounded-md border object-contain"
+              />
+            )}
+            {fisHata && (
+              <p role="alert" className="text-xs text-red-700">
+                {fisHata}
+              </p>
+            )}
+          </div>
+
           {durum?.hata && (
             <p role="alert" className="text-sm text-red-700">
               {durum.hata}
@@ -175,8 +247,13 @@ export function HarcamaFormu({
               Harcama eklendi ✓
             </p>
           )}
+          {durum?.uyari && (
+            <p role="alert" className="text-sm text-amber-700">
+              {durum.uyari}
+            </p>
+          )}
 
-          <Button type="submit" size="lg" disabled={bekliyor}>
+          <Button type="submit" size="lg" disabled={bekliyor || kucultuluyor}>
             {bekliyor ? "Ekleniyor..." : "Harcamayı ekle"}
           </Button>
         </form>
