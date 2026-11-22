@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { kurusaCevir } from "@/lib/para";
@@ -21,7 +22,7 @@ export type HarcamaFormDurumu =
   | {
       hata?: string;
       basarili?: boolean;
-      uyari?: string; // harcama eklendi ama fiş yüklenemedi gibi durumlar
+      uyari?: string; // harcama kaydedildi ama fiş yüklenemedi gibi durumlar
       degerler?: HarcamaDegerleri;
     }
   | undefined;
@@ -44,10 +45,14 @@ const harcamaSemasi = z.object({
   bolunenler: z.array(z.uuid()).min(1, "En az bir kişi seç"),
 });
 
-export async function harcamaEkle(
-  _onceki: HarcamaFormDurumu,
-  formData: FormData,
-): Promise<HarcamaFormDurumu> {
+type Supabase = Awaited<ReturnType<typeof createClient>>;
+
+// ---------------------------------------------------------------------------
+// Ekleme ve düzenlemenin ortak parçaları (dışa aktarılmıyor)
+// ---------------------------------------------------------------------------
+
+// Formu oku + Zod ile doğrula + fiş dosyasını kontrol et
+function formuOku(formData: FormData) {
   const degerler: HarcamaDegerleri = {
     aciklama: String(formData.get("aciklama") ?? ""),
     tutar: String(formData.get("tutar") ?? ""),
@@ -67,14 +72,57 @@ export async function harcamaEkle(
     tarih: degerler.tarih,
     bolunenler: degerler.bolunenler,
   });
-  if (!sonuc.success) return { hata: sonuc.error.issues[0].message, degerler };
 
   // Fiş (isteğe bağlı): tarayıcı küçültse bile sunucuda tekrar kontrol et
-  const fis = formData.get("fis");
-  const fisVar = fis instanceof File && fis.size > 0;
-  if (fisVar && (!fisTuruGecerli(fis.type) || fis.size > FIS_EN_BUYUK_BOYUT)) {
-    return { hata: "Fiş JPEG, PNG ya da WebP olmalı ve 1 MB'ı geçmemeli.", degerler };
+  const dosya = formData.get("fis");
+  const fis = dosya instanceof File && dosya.size > 0 ? dosya : null;
+  const fisHatasi =
+    fis && (!fisTuruGecerli(fis.type) || fis.size > FIS_EN_BUYUK_BOYUT)
+      ? "Fiş JPEG, PNG ya da WebP olmalı ve 1 MB'ı geçmemeli."
+      : null;
+
+  return { degerler, sonuc, fis, fisHatasi };
+}
+
+// Fişi Storage'a yükle → harcamaya bağla → varsa eski fişi sil.
+// Başarısızsa uyarı metni döner (harcama yine kayıtlı kalır).
+async function fisiYukle(
+  supabase: Supabase,
+  grupId: string,
+  harcamaId: string,
+  fis: File,
+): Promise<string | null> {
+  const yol = fisYolu(grupId, harcamaId, crypto.randomUUID(), fis.type);
+  const yukleme = await supabase.storage
+    .from("fisler")
+    .upload(yol, fis, { contentType: fis.type, upsert: false });
+  if (yukleme.error) return "Harcama kaydedildi ama fiş yüklenemedi.";
+
+  // fis_bagla, harcamanın ESKİ fişinin yolunu döndürür (yoksa null)
+  const { data: eskiYol, error } = await supabase.rpc("fis_bagla", {
+    p_harcama_id: harcamaId,
+    p_yol: yol,
+  });
+  if (error) {
+    await supabase.storage.from("fisler").remove([yol]); // sahipsiz dosya kalmasın
+    return "Harcama kaydedildi ama fiş bağlanamadı.";
   }
+  if (typeof eskiYol === "string" && eskiYol) {
+    await supabase.storage.from("fisler").remove([eskiYol]); // yerine yenisi geldi
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Harcama ekleme
+// ---------------------------------------------------------------------------
+export async function harcamaEkle(
+  _onceki: HarcamaFormDurumu,
+  formData: FormData,
+): Promise<HarcamaFormDurumu> {
+  const { degerler, sonuc, fis, fisHatasi } = formuOku(formData);
+  if (!sonuc.success) return { hata: sonuc.error.issues[0].message, degerler };
+  if (fisHatasi) return { hata: fisHatasi, degerler };
 
   const h = sonuc.data;
   const supabase = await createClient();
@@ -101,39 +149,72 @@ export async function harcamaEkle(
     return { hata: mesaj, degerler };
   }
 
-  // Fiş varsa: Storage'a yükle → harcamaya bağla.
-  // Bu adım başarısız olursa harcama yine kayıtlı kalır, kullanıcı uyarılır.
-  if (fisVar && typeof harcamaId === "string") {
-    const yol = fisYolu(h.grupId, harcamaId, crypto.randomUUID(), fis.type);
-    const yukleme = await supabase.storage
-      .from("fisler")
-      .upload(yol, fis, { contentType: fis.type, upsert: false });
-
-    if (yukleme.error) {
-      refresh();
-      return { basarili: true, uyari: "Harcama eklendi ama fiş yüklenemedi." };
-    }
-
-    const { error: baglamaHatasi } = await supabase.rpc("fis_bagla", {
-      p_harcama_id: harcamaId,
-      p_yol: yol,
-    });
-    if (baglamaHatasi) {
-      await supabase.storage.from("fisler").remove([yol]); // sahipsiz dosya kalmasın
-      refresh();
-      return { basarili: true, uyari: "Harcama eklendi ama fiş bağlanamadı." };
-    }
-  }
+  const uyari =
+    fis && typeof harcamaId === "string"
+      ? await fisiYukle(supabase, h.grupId, harcamaId, fis)
+      : null;
 
   // Grup sayfasını yeniden çiz → yeni harcama listede görünsün
   refresh();
-  return { basarili: true };
+  return uyari ? { basarili: true, uyari } : { basarili: true };
 }
 
+// ---------------------------------------------------------------------------
+// Harcama düzenleme
+// ---------------------------------------------------------------------------
+export async function harcamaDuzenle(
+  _onceki: HarcamaFormDurumu,
+  formData: FormData,
+): Promise<HarcamaFormDurumu> {
+  const harcamaId = String(formData.get("harcamaId") ?? "");
+  const { degerler, sonuc, fis, fisHatasi } = formuOku(formData);
+  if (!z.uuid().safeParse(harcamaId).success) return { hata: "Geçersiz harcama.", degerler };
+  if (!sonuc.success) return { hata: sonuc.error.issues[0].message, degerler };
+  if (fisHatasi) return { hata: fisHatasi, degerler };
+
+  const h = sonuc.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("harcama_duzenle", {
+    p_harcama_id: harcamaId,
+    p_aciklama: h.aciklama,
+    p_tutar_kurus: h.tutarKurus,
+    p_odeyen_id: h.odeyenId,
+    p_kategori: h.kategori,
+    p_tarih: h.tarih,
+    p_bolunenler: h.bolunenler,
+  });
+
+  if (error) {
+    const mesaj =
+      error.code === "28000"
+        ? "Oturumun sona ermiş, tekrar giriş yap."
+        : error.code === "42501"
+          ? "Bu harcamayı sadece ekleyen kişi ya da grup yöneticisi düzenleyebilir."
+          : error.code === "P0002"
+            ? "Harcama bulunamadı. Silinmiş olabilir."
+            : error.code === "22023"
+              ? error.message
+              : "Değişiklikler kaydedilemedi. Lütfen tekrar dene.";
+    return { hata: mesaj, degerler };
+  }
+
+  const uyari = fis ? await fisiYukle(supabase, h.grupId, harcamaId, fis) : null;
+  if (uyari) {
+    refresh();
+    return { basarili: true, uyari };
+  }
+
+  // Kaydedildi → grup sayfasına dön (bakiyeler yeni haliyle hesaplanmış olur)
+  redirect(`/gruplar/${h.grupId}`);
+}
+
+// ---------------------------------------------------------------------------
+// Harcama silme
+// ---------------------------------------------------------------------------
 export type SilmeSonucu = { hata: string } | { basarili: true };
 
-// Harcamayı siler. Yetki kontrolü veritabanında (harcama_sil):
-// sadece ekleyen kişi ya da grup yöneticisi. Silmeden önce geçmişe kopyalanır.
+// Yetki kontrolü veritabanında (harcama_sil): sadece ekleyen kişi ya da
+// grup yöneticisi. Silmeden önce geçmişe kopyalanır.
 export async function harcamaSil(harcamaId: string): Promise<SilmeSonucu> {
   if (!z.uuid().safeParse(harcamaId).success) return { hata: "Geçersiz harcama." };
 

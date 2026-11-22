@@ -36,15 +36,17 @@ export function DegisiklikGecmisi({
   kayitlar,
   isimler,
   benimId,
+  baslik = "Son değişiklikler",
 }: {
   kayitlar: GecmisKaydi[];
   isimler: Map<string, string>;
   benimId: string;
+  baslik?: string;
 }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Son değişiklikler</CardTitle>
+        <CardTitle className="text-base">{baslik}</CardTitle>
       </CardHeader>
       <CardContent>
         {kayitlar.length === 0 ? (

@@ -158,6 +158,7 @@ export default async function GrupDetaySayfasi({
         bugun={bugun}
       />
       <HarcamaListesi
+        grupId={grup.id}
         harcamalar={harcamalar ?? []}
         isimler={isimler}
         benimId={user.id}

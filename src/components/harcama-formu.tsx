@@ -1,7 +1,11 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { harcamaEkle } from "@/app/harcamalar/actions";
+import {
+  harcamaDuzenle,
+  harcamaEkle,
+  type HarcamaDegerleri,
+} from "@/app/harcamalar/actions";
 import { KATEGORILER } from "@/lib/kategoriler";
 import { FIS_EN_BUYUK_BOYUT, fisTuruGecerli } from "@/lib/gorsel";
 import { fisiKucult } from "@/lib/gorsel-tarayici";
@@ -21,16 +25,25 @@ export function HarcamaFormu({
   kisiler,
   benimId,
   bugun,
+  duzenlenen,
+  mevcutFisVar = false,
 }: {
   grupId: string;
   kisiler: Kisi[];
   benimId: string;
   bugun: string; // "2026-11-19" (sunucu İstanbul saatine göre hesaplar)
+  // Verilirse form "düzenleme" modunda açılır, alanlar bu değerlerle dolu gelir
+  duzenlenen?: HarcamaDegerleri & { id: string };
+  mevcutFisVar?: boolean;
 }) {
-  const [durum, formAction, bekliyor] = useActionState(harcamaEkle, undefined);
+  // Aynı form iki iş görüyor: ekleme ya da düzenleme
+  const [durum, formAction, bekliyor] = useActionState(
+    duzenlenen ? harcamaDuzenle : harcamaEkle,
+    undefined,
+  );
 
-  // Hata varsa kullanıcının yazdıkları, yoksa varsayılanlar
-  const d = durum?.degerler;
+  // Hata varsa kullanıcının yazdıkları; düzenlemede harcamanın mevcut hali; yoksa varsayılanlar
+  const d = durum?.degerler ?? duzenlenen;
   const seciliKisiler = d?.bolunenler ?? kisiler.map((k) => k.id);
 
   // "Herkes / Temizle" butonları için forma erişim
@@ -79,7 +92,9 @@ export function HarcamaFormu({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Harcama ekle</CardTitle>
+        <CardTitle className="text-base">
+          {duzenlenen ? "Harcamayı düzenle" : "Harcama ekle"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form
@@ -93,6 +108,9 @@ export function HarcamaFormu({
           className="flex flex-col gap-4"
         >
           <input type="hidden" name="grupId" value={grupId} />
+          {duzenlenen && (
+            <input type="hidden" name="harcamaId" value={duzenlenen.id} />
+          )}
 
           {/* Açıklama + Tutar */}
           <div className="grid grid-cols-[1fr_8rem] gap-2">
@@ -210,7 +228,11 @@ export function HarcamaFormu({
 
           {/* Fiş fotoğrafı (isteğe bağlı) */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="fis">📷 Fiş fotoğrafı (isteğe bağlı)</Label>
+            <Label htmlFor="fis">
+              {mevcutFisVar
+                ? "📷 Fişi değiştir (isteğe bağlı)"
+                : "📷 Fiş fotoğrafı (isteğe bağlı)"}
+            </Label>
             <input
               id="fis"
               name="fis"
@@ -242,7 +264,7 @@ export function HarcamaFormu({
               {durum.hata}
             </p>
           )}
-          {durum?.basarili && (
+          {durum?.basarili && !duzenlenen && (
             <p role="status" className="text-sm text-teal-700">
               Harcama eklendi ✓
             </p>
@@ -254,7 +276,13 @@ export function HarcamaFormu({
           )}
 
           <Button type="submit" size="lg" disabled={bekliyor || kucultuluyor}>
-            {bekliyor ? "Ekleniyor..." : "Harcamayı ekle"}
+            {duzenlenen
+              ? bekliyor
+                ? "Kaydediliyor..."
+                : "Değişiklikleri kaydet"
+              : bekliyor
+                ? "Ekleniyor..."
+                : "Harcamayı ekle"}
           </Button>
         </form>
       </CardContent>

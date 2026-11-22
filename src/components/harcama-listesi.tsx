@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
@@ -17,12 +18,14 @@ export type Harcama = {
 };
 
 export function HarcamaListesi({
+  grupId,
   harcamalar,
   isimler,
   benimId,
   yoneticiyim,
   fisLinkleri,
 }: {
+  grupId: string;
   harcamalar: Harcama[];
   isimler: Map<string, string>;
   benimId: string;
@@ -68,7 +71,13 @@ export function HarcamaListesi({
                   </span>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{h.aciklama}</p>
+                    {/* Açıklamaya dokununca detay: düzenleme, fiş ve geçmiş */}
+                    <Link
+                      href={`/gruplar/${grupId}/harcama/${h.id}`}
+                      className="block truncate font-medium hover:underline"
+                    >
+                      {h.aciklama}
+                    </Link>
                     <p className="text-xs text-muted-foreground">
                       {odeyenMetni} · {h.expense_splits.length} kişi ·{" "}
                       {formatGun(h.tarih)}

@@ -1,17 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { harcamaSil } from "@/app/harcamalar/actions";
 
 export function HarcamaSilButonu({
   harcamaId,
   aciklama,
   tutarMetni,
+  sonraGit,
 }: {
   harcamaId: string;
   aciklama: string;
   tutarMetni: string; // "₺1.000,00"
+  sonraGit?: string; // silindikten sonra gidilecek sayfa (detay sayfasından silerken)
 }) {
+  const router = useRouter();
   const [bekliyor, baslat] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
 
@@ -27,6 +31,7 @@ export function HarcamaSilButonu({
     baslat(async () => {
       const sonuc = await harcamaSil(harcamaId);
       if ("hata" in sonuc) setHata(sonuc.hata);
+      else if (sonraGit) router.push(sonraGit);
     });
   }
 
