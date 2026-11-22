@@ -9,6 +9,10 @@ import { HarcamaFormu } from "@/components/harcama-formu";
 import { HarcamaListesi, type Harcama } from "@/components/harcama-listesi";
 import { BakiyeKarti } from "@/components/bakiye-karti";
 import { OdemeGecmisi, type OdemeKaydi } from "@/components/odeme-gecmisi";
+import {
+  DegisiklikGecmisi,
+  type GecmisKaydi,
+} from "@/components/degisiklik-gecmisi";
 import { buttonVariants } from "@/components/ui/button";
 import { bugunIstanbul } from "@/lib/tarih";
 
@@ -39,7 +43,7 @@ export default async function GrupDetaySayfasi({
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  // 5 sorgu birbirinden bağımsız → hepsini AYNI ANDA gönder.
+  // 6 sorgu birbirinden bağımsız → hepsini AYNI ANDA gönder.
   // RLS: üyesi olmadığın grupta hepsi boş döner; grup boşsa 404.
   const [
     { data: grup },
@@ -47,6 +51,7 @@ export default async function GrupDetaySayfasi({
     { data: harcamalar },
     { data: bakiyeVerisi },
     { data: odemeKayitlari },
+    { data: gecmis },
   ] = await Promise.all([
     supabase.from("groups").select("id, ad").eq("id", id).maybeSingle(),
 
@@ -60,7 +65,7 @@ export default async function GrupDetaySayfasi({
     supabase
       .from("expenses")
       .select(
-        "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, expense_splits(user_id, pay_kurus)",
+        "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, olusturan_id, expense_splits(user_id, pay_kurus)",
       )
       .eq("group_id", id)
       .order("tarih", { ascending: false })
@@ -78,8 +83,21 @@ export default async function GrupDetaySayfasi({
       .order("created_at", { ascending: false })
       .limit(20)
       .overrideTypes<OdemeKaydi[], { merge: false }>(),
+
+    // Son 10 değişiklik (ekleme, silme…) — RLS: sadece üyeysen gelir
+    supabase
+      .from("expense_history")
+      .select("id, expense_id, islem, yapan_id, eski, yeni, zaman")
+      .eq("group_id", id)
+      .order("zaman", { ascending: false })
+      .limit(10)
+      .overrideTypes<GecmisKaydi[], { merge: false }>(),
   ]);
   if (!grup) notFound();
+
+  // Yönetici, gruptaki her harcamayı silebilir (veritabanı kuralıyla aynı)
+  const yoneticiyim =
+    uyeler?.some((u) => u.user_id === user.id && u.rol === "admin") ?? false;
 
   // Form için sade kişi listesi ve id → ad sözlüğü
   const kisiler = (uyeler ?? []).map((u) => ({
@@ -129,9 +147,15 @@ export default async function GrupDetaySayfasi({
         harcamalar={harcamalar ?? []}
         isimler={isimler}
         benimId={user.id}
+        yoneticiyim={yoneticiyim}
       />
       <OdemeGecmisi
         odemeler={odemeKayitlari ?? []}
+        isimler={isimler}
+        benimId={user.id}
+      />
+      <DegisiklikGecmisi
+        kayitlar={gecmis ?? []}
         isimler={isimler}
         benimId={user.id}
       />

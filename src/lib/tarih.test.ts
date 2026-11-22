@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { bugunIstanbul, formatGun } from "./tarih";
+import { bugunIstanbul, formatAn, formatGun } from "./tarih";
+
+describe("formatAn", () => {
+  it("UTC zamanı İstanbul saatiyle gösterir", () => {
+    expect(formatAn("2026-11-22T11:05:00Z")).toBe("22 Kas 14:05");
+  });
+
+  it("UTC 22:30 → İstanbul'da ertesi gün 01:30", () => {
+    expect(formatAn("2026-11-21T22:30:00+00:00")).toBe("22 Kas 01:30");
+  });
+});
 
 describe("formatGun", () => {
   it("Türkçe kısa tarih", () => {

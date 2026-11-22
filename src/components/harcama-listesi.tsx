@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
 import { formatGun } from "@/lib/tarih";
+import { HarcamaSilButonu } from "@/components/harcama-sil-butonu";
 
 export type Harcama = {
   id: string;
@@ -10,6 +11,7 @@ export type Harcama = {
   kategori: string;
   tarih: string; // "2026-11-19"
   odeyen_id: string;
+  olusturan_id: string | null;
   expense_splits: { user_id: string; pay_kurus: number }[];
 };
 
@@ -17,10 +19,12 @@ export function HarcamaListesi({
   harcamalar,
   isimler,
   benimId,
+  yoneticiyim,
 }: {
   harcamalar: Harcama[];
   isimler: Map<string, string>;
   benimId: string;
+  yoneticiyim: boolean;
 }) {
   return (
     <Card>
@@ -43,6 +47,8 @@ export function HarcamaListesi({
               const benimPayim = h.expense_splits.find(
                 (s) => s.user_id === benimId,
               )?.pay_kurus;
+              // Veritabanı kuralıyla aynı: ekleyen kişi ya da yönetici silebilir
+              const silebilirim = h.olusturan_id === benimId || yoneticiyim;
 
               return (
                 <li
@@ -73,6 +79,13 @@ export function HarcamaListesi({
                       <p className="text-xs text-muted-foreground tabular-nums">
                         Payın {formatTL(benimPayim)}
                       </p>
+                    )}
+                    {silebilirim && (
+                      <HarcamaSilButonu
+                        harcamaId={h.id}
+                        aciklama={h.aciklama}
+                        tutarMetni={formatTL(h.tutar_kurus)}
+                      />
                     )}
                   </div>
                 </li>

@@ -92,3 +92,31 @@ export async function harcamaEkle(
   refresh();
   return { basarili: true };
 }
+
+export type SilmeSonucu = { hata: string } | { basarili: true };
+
+// Harcamayı siler. Yetki kontrolü veritabanında (harcama_sil):
+// sadece ekleyen kişi ya da grup yöneticisi. Silmeden önce geçmişe kopyalanır.
+export async function harcamaSil(harcamaId: string): Promise<SilmeSonucu> {
+  if (!z.uuid().safeParse(harcamaId).success) return { hata: "Geçersiz harcama." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("harcama_sil", {
+    p_harcama_id: harcamaId,
+  });
+
+  if (error) {
+    const mesaj =
+      error.code === "28000"
+        ? "Oturumun sona ermiş, tekrar giriş yap."
+        : error.code === "42501"
+          ? "Bu harcamayı sadece ekleyen kişi ya da grup yöneticisi silebilir."
+          : error.code === "P0002"
+            ? "Harcama bulunamadı. Sayfayı yenile."
+            : "Harcama silinemedi. Lütfen tekrar dene.";
+    return { hata: mesaj };
+  }
+
+  refresh(); // bakiyeler, liste, özet ve geçmiş yeniden hesaplanır
+  return { basarili: true };
+}
