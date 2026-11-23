@@ -1,25 +1,13 @@
--- =========================================================
--- Gün 7 / Bölüm 1: Harcama silme + değişiklik geçmişi
---
--- Fikir: Silmeden ÖNCE harcamanın son halini geçmiş tablosuna kopyala,
--- sonra gerçekten sil. Böylece bakiye, özet ve liste sorgularının
--- hiçbiri değişmiyor; silinen harcama hesaplardan kendiliğinden çıkıyor.
--- =========================================================
-
--- ---------------------------------------------------------
--- PARÇA 1: Geçmiş tablosu
--- ---------------------------------------------------------
 create table public.expense_history (
   id          bigint generated always as identity primary key,
   group_id    uuid not null references public.groups (id) on delete cascade,
-  -- Bilerek yabancı anahtar YOK: harcama silinince geçmiş kaydı kalmalı
   expense_id  uuid not null,
   islem       text not null check (
                 islem in ('eklendi', 'duzenlendi', 'silindi', 'fis_eklendi', 'fis_kaldirildi')
               ),
   yapan_id    uuid references public.profiles (id) on delete set null,
-  eski        jsonb,  -- işlemden önceki hali (eklemede boş)
-  yeni        jsonb,  -- işlemden sonraki hali (silmede boş)
+  eski        jsonb,
+  yeni        jsonb,
   zaman       timestamptz not null default now()
 );
 
@@ -33,15 +21,8 @@ create policy "Grup uyeleri gecmisi gorebilir"
   to authenticated
   using (public.grup_uyesi_mi(group_id));
 
--- Sadece okuma. Geçmiş değiştirilemez, silinemez; yazan sadece fonksiyonlar.
 grant select on public.expense_history to authenticated;
 
--- ---------------------------------------------------------
--- PARÇA 2: Harcamanın anlık görüntüsü (JSON) + harcama_ekle güncellemesi
--- ---------------------------------------------------------
-
--- İç yardımcı: bir harcamanın o anki hali, payları dahil.
--- API'den çağrılamaz (aşağıda izinleri kaldırılıyor); sadece fonksiyonlar kullanır.
 create or replace function public.harcama_jsonu(p_harcama_id uuid)
 returns jsonb
 language sql
@@ -66,7 +47,6 @@ $$;
 
 revoke execute on function public.harcama_jsonu(uuid) from public, anon, authenticated;
 
--- harcama_ekle: Gün 3'teki fonksiyonun aynısı + sonunda geçmişe "eklendi" kaydı
 create or replace function public.harcama_ekle(
   p_grup_id      uuid,
   p_aciklama     text,
@@ -138,7 +118,6 @@ begin
          v_taban + case when sira <= v_artan then 1 else 0 end
   from unnest(p_bolunenler) with ordinality as t(kisi, sira);
 
-  -- YENİ: geçmişe "eklendi" kaydı
   insert into public.expense_history (group_id, expense_id, islem, yapan_id, yeni)
   values (p_grup_id, v_harcama_id, 'eklendi', auth.uid(), public.harcama_jsonu(v_harcama_id));
 
@@ -146,14 +125,10 @@ begin
 end;
 $$;
 
--- Mevcut harcamalar için geriye dönük "eklendi" kayıtları (zamanı: eklenme anı)
 insert into public.expense_history (group_id, expense_id, islem, yapan_id, yeni, zaman)
 select e.group_id, e.id, 'eklendi', e.olusturan_id, public.harcama_jsonu(e.id), e.created_at
 from public.expenses e;
 
--- ---------------------------------------------------------
--- PARÇA 3: harcama_sil
--- ---------------------------------------------------------
 create or replace function public.harcama_sil(p_harcama_id uuid)
 returns void
 language plpgsql
@@ -173,13 +148,10 @@ begin
   from public.expenses
   where id = p_harcama_id;
 
-  -- Harcama yoksa YA DA üyesi olmadığın bir gruptaysa: aynı cevap.
-  -- (Başka grubun harcamasının var olduğunu ele vermiyoruz.)
   if v_grup_id is null or not public.grup_uyesi_mi(v_grup_id) then
     raise exception 'Harcama bulunamadı' using errcode = 'P0002';
   end if;
 
-  -- Yetki: harcamayı ekleyen kişi ya da grup yöneticisi
   if v_ben is distinct from v_olusturan and not exists (
     select 1 from public.group_members
     where group_id = v_grup_id and user_id = v_ben and rol = 'admin'
@@ -188,7 +160,6 @@ begin
       using errcode = '42501';
   end if;
 
-  -- Önce geçmişe son halini yaz, sonra sil (paylar cascade ile silinir)
   insert into public.expense_history (group_id, expense_id, islem, yapan_id, eski)
   values (v_grup_id, p_harcama_id, 'silindi', v_ben, public.harcama_jsonu(p_harcama_id));
 

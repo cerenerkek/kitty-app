@@ -10,7 +10,7 @@ export type Harcama = {
   aciklama: string;
   tutar_kurus: number;
   kategori: string;
-  tarih: string; // "2026-11-19"
+  tarih: string;
   odeyen_id: string;
   olusturan_id: string | null;
   fis_yolu: string | null;
@@ -30,7 +30,7 @@ export function HarcamaListesi({
   isimler: Map<string, string>;
   benimId: string;
   yoneticiyim: boolean;
-  fisLinkleri: Map<string, string>; // fiş yolu → 1 saatlik imzalı link
+  fisLinkleri: Map<string, string>;
 }) {
   return (
     <Card>
@@ -53,7 +53,6 @@ export function HarcamaListesi({
               const benimPayim = h.expense_splits.find(
                 (s) => s.user_id === benimId,
               )?.pay_kurus;
-              // Veritabanı kuralıyla aynı: ekleyen kişi ya da yönetici silebilir
               const silebilirim = h.olusturan_id === benimId || yoneticiyim;
               const fisLinki = h.fis_yolu ? fisLinkleri.get(h.fis_yolu) : undefined;
 
@@ -71,7 +70,6 @@ export function HarcamaListesi({
                   </span>
 
                   <div className="min-w-0 flex-1">
-                    {/* Açıklamaya dokununca detay: düzenleme, fiş ve geçmiş */}
                     <Link
                       href={`/gruplar/${grupId}/harcama/${h.id}`}
                       className="block truncate font-medium hover:underline"

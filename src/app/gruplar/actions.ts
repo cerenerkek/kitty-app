@@ -24,7 +24,6 @@ export async function grupOlustur(
   const sonuc = grupSemasi.safeParse({ ad });
   if (!sonuc.success) return { hata: sonuc.error.issues[0].message, ad };
 
-  // Veritabanı fonksiyonu: grubu kurar + bizi admin yapar (tek transaction)
   const supabase = await createClient();
   const { data: grupId, error } = await supabase.rpc("grup_olustur", {
     p_ad: sonuc.data.ad,
@@ -40,7 +39,6 @@ export async function grupOlustur(
     };
   }
 
-  // Kenar çubuğundaki grup listesi de yenilensin (yeni grup görünsün)
   revalidatePath("/gruplar", "layout");
   redirect(`/gruplar/${grupId}`);
 }
@@ -59,4 +57,47 @@ export async function davetOlustur(grupId: string): Promise<DavetSonucu> {
 
   if (error || !data) return { hata: "Davet linki oluşturulamadı." };
   return { token: data.token };
+}
+export type GrupSilDurumu = { hata: string } | undefined;
+
+export async function grupSil(
+  _onceki: GrupSilDurumu,
+  formData: FormData,
+): Promise<GrupSilDurumu> {
+  const grupId = String(formData.get("grupId") ?? "");
+  if (!z.uuid().safeParse(grupId).success) return { hata: "Geçersiz grup." };
+
+  const supabase = await createClient();
+
+  const { data: yonetici } = await supabase.rpc("grup_yoneticisi_mi", {
+    p_group_id: grupId,
+  });
+  if (!yonetici) return { hata: "Grubu sadece yönetici silebilir." };
+
+  const { data: fisler } = await supabase
+    .from("expenses")
+    .select("fis_yolu")
+    .eq("group_id", grupId)
+    .not("fis_yolu", "is", null);
+  const yollar = (fisler ?? [])
+    .map((f) => f.fis_yolu)
+    .filter((y): y is string => Boolean(y));
+  if (yollar.length > 0) {
+    await supabase.storage.from("fisler").remove(yollar);
+  }
+
+  const { error } = await supabase.rpc("grup_sil", { p_grup_id: grupId });
+  if (error) {
+    return {
+      hata:
+        error.code === "28000"
+          ? "Oturumun sona ermiş, tekrar giriş yap."
+          : error.code === "42501"
+            ? "Grubu sadece yönetici silebilir."
+            : "Grup silinemedi. Lütfen tekrar dene.",
+    };
+  }
+
+  revalidatePath("/gruplar", "layout");
+  redirect("/gruplar");
 }

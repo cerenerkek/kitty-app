@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { harcamaSil } from "@/app/harcamalar/actions";
+import { OnayPenceresi } from "@/components/onay-penceresi";
 
 export function HarcamaSilButonu({
   harcamaId,
@@ -12,21 +13,16 @@ export function HarcamaSilButonu({
 }: {
   harcamaId: string;
   aciklama: string;
-  tutarMetni: string; // "₺1.000,00"
-  sonraGit?: string; // silindikten sonra gidilecek sayfa (detay sayfasından silerken)
+  tutarMetni: string;
+  sonraGit?: string;
 }) {
   const router = useRouter();
   const [bekliyor, baslat] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
+  const [acik, setAcik] = useState(false);
 
   function sil() {
-    // Silme geri alınamaz → onay iste
-    const onay = window.confirm(
-      `"${aciklama}" (${tutarMetni}) silinsin mi?\n\n` +
-        "Bakiyeler yeniden hesaplanır. Silme işlemi değişiklik geçmişinde görünür.",
-    );
-    if (!onay) return;
-
+    setAcik(false);
     setHata(null);
     baslat(async () => {
       const sonuc = await harcamaSil(harcamaId);
@@ -39,7 +35,7 @@ export function HarcamaSilButonu({
     <div className="flex flex-col items-end">
       <button
         type="button"
-        onClick={sil}
+        onClick={() => setAcik(true)}
         disabled={bekliyor}
         aria-label={`"${aciklama}" harcamasını sil`}
         className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:text-destructive disabled:opacity-50"
@@ -51,6 +47,24 @@ export function HarcamaSilButonu({
           {hata}
         </p>
       )}
+
+      <OnayPenceresi
+        acik={acik}
+        baslik="Harcama silinsin mi?"
+        onayEtiketi="Sil"
+        tehlikeli
+        onVazgec={() => setAcik(false)}
+        onOnayla={sil}
+      >
+        <p>
+          <span className="font-medium text-foreground">{aciklama}</span> ·{" "}
+          {tutarMetni}
+        </p>
+        <p>
+          Bakiyeler yeniden hesaplanır. Silme işlemi değişiklik geçmişinde
+          görünür.
+        </p>
+      </OnayPenceresi>
     </div>
   );
 }

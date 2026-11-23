@@ -1,8 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-// Sunucuda çalışan kodlar (sayfalar, actions) için Supabase bağlantısı.
-// Oturum bilgisi tarayıcının çerezlerinden (cookie) okunur.
 export async function createClient() {
   const cookieStore = await cookies();
 
@@ -20,8 +18,7 @@ export async function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // Sayfa (Server Component) içinden çağrılınca çerez yazılamaz.
-            // Sorun değil: oturumu proxy zaten yeniliyor.
+
           }
         },
       },

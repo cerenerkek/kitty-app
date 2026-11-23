@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label";
 
 type Kisi = { id: string; ad: string };
 
-// Açılır menüler Input ile aynı görünsün diye
 const SECIM_STILI =
   "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm";
 
@@ -31,22 +30,18 @@ export function HarcamaFormu({
   grupId: string;
   kisiler: Kisi[];
   benimId: string;
-  bugun: string; // "2026-11-19" (sunucu İstanbul saatine göre hesaplar)
-  // Verilirse form "düzenleme" modunda açılır, alanlar bu değerlerle dolu gelir
+  bugun: string;
   duzenlenen?: HarcamaDegerleri & { id: string };
   mevcutFisVar?: boolean;
 }) {
-  // Aynı form iki iş görüyor: ekleme ya da düzenleme
   const [durum, formAction, bekliyor] = useActionState(
     duzenlenen ? harcamaDuzenle : harcamaEkle,
     undefined,
   );
 
-  // Hata varsa kullanıcının yazdıkları; düzenlemede harcamanın mevcut hali; yoksa varsayılanlar
   const d = durum?.degerler ?? duzenlenen;
   const seciliKisiler = d?.bolunenler ?? kisiler.map((k) => k.id);
 
-  // "Herkes / Temizle" butonları için forma erişim
   const formRef = useRef<HTMLFormElement>(null);
 
   function kisileriSec(secilsinMi: boolean) {
@@ -57,13 +52,12 @@ export function HarcamaFormu({
       });
   }
 
-  // Fiş fotoğrafı: seçilince telefonda küçültülür, input'taki dosya küçüğüyle değiştirilir
   const [kucultuluyor, setKucultuluyor] = useState(false);
   const [onizleme, setOnizleme] = useState<string | null>(null);
   const [fisHata, setFisHata] = useState<string | null>(null);
 
   async function fisSecildi(e: React.ChangeEvent<HTMLInputElement>) {
-    const input = e.currentTarget; // await'ten önce sakla
+    const input = e.currentTarget;
     const dosya = input.files?.[0];
     setFisHata(null);
     setOnizleme(null);
@@ -74,10 +68,9 @@ export function HarcamaFormu({
       const kucuk = await fisiKucult(dosya);
       const aktarim = new DataTransfer();
       aktarim.items.add(kucuk);
-      input.files = aktarim.files; // form artık küçük dosyayı gönderecek
+      input.files = aktarim.files;
       setOnizleme(URL.createObjectURL(kucuk));
     } catch {
-      // Küçültülemedi: zaten uygun türde ve küçükse olduğu gibi gönder
       if (fisTuruGecerli(dosya.type) && dosya.size <= FIS_EN_BUYUK_BOYUT - 100 * 1024) {
         setOnizleme(URL.createObjectURL(dosya));
       } else {
@@ -100,7 +93,6 @@ export function HarcamaFormu({
         <form
           ref={formRef}
           action={formAction}
-          // Başarılı gönderimden sonra React formu sıfırlar → önizlemeyi de temizle
           onReset={() => {
             setOnizleme(null);
             setFisHata(null);
@@ -112,7 +104,6 @@ export function HarcamaFormu({
             <input type="hidden" name="harcamaId" value={duzenlenen.id} />
           )}
 
-          {/* Açıklama + Tutar */}
           <div className="grid grid-cols-[1fr_8rem] gap-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="aciklama">Açıklama</Label>
@@ -140,7 +131,6 @@ export function HarcamaFormu({
             </div>
           </div>
 
-          {/* Kategori + Tarih */}
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="kategori">Kategori</Label>
@@ -170,7 +160,6 @@ export function HarcamaFormu({
             </div>
           </div>
 
-          {/* Kim ödedi */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="odeyen">Kim ödedi?</Label>
             <select
@@ -188,7 +177,6 @@ export function HarcamaFormu({
             </select>
           </div>
 
-          {/* Kimler arasında bölünsün */}
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1.5 flex w-full items-center justify-between gap-2 text-sm font-medium">
               <span>Kimler arasında eşit bölünsün?</span>
@@ -226,7 +214,6 @@ export function HarcamaFormu({
             ))}
           </fieldset>
 
-          {/* Fiş fotoğrafı (isteğe bağlı) */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="fis">
               {mevcutFisVar
@@ -245,7 +232,7 @@ export function HarcamaFormu({
               <p className="text-xs text-muted-foreground">Fotoğraf küçültülüyor…</p>
             )}
             {onizleme && (
-              // eslint-disable-next-line @next/next/no-img-element -- yerel önizleme (blob:), optimize edilecek bir şey yok
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={onizleme}
                 alt="Seçilen fişin önizlemesi"

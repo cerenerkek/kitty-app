@@ -52,7 +52,6 @@ export default async function HarcamaDetaySayfasi({
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  // 3 bağımsız sorgu aynı anda. RLS: üyesi değilsen hepsi boş → 404
   const [{ data: harcama }, { data: uyeler }, { data: gecmis }] =
     await Promise.all([
       supabase
@@ -61,7 +60,7 @@ export default async function HarcamaDetaySayfasi({
           "id, aciklama, tutar_kurus, kategori, tarih, odeyen_id, olusturan_id, fis_yolu, expense_splits(user_id, pay_kurus)",
         )
         .eq("id", harcamaId)
-        .eq("group_id", id) // adresteki grup ile harcamanın grubu uyuşmalı
+        .eq("group_id", id)
         .maybeSingle()
         .overrideTypes<HarcamaDetayi, { merge: false }>(),
 
@@ -90,12 +89,10 @@ export default async function HarcamaDetaySayfasi({
   const ad = (kisiId: string) =>
     kisiId === user.id ? "Sen" : (isimler.get(kisiId) ?? "Eski üye");
 
-  // Veritabanı kuralıyla aynı: ekleyen kişi ya da yönetici değiştirebilir
   const yoneticiyim =
     uyeler?.some((u) => u.user_id === user.id && u.rol === "admin") ?? false;
   const degistirebilirim = harcama.olusturan_id === user.id || yoneticiyim;
 
-  // Fiş: gizli klasörden 1 saatlik imzalı link
   let fisLinki: string | null = null;
   if (harcama.fis_yolu) {
     const { data } = await supabase.storage
@@ -116,11 +113,9 @@ export default async function HarcamaDetaySayfasi({
         {kategori.emoji} {harcama.aciklama}
       </h1>
 
-      {/* Telefon: özet → düzenleme → geçmiş. Bilgisayar: solda özet + geçmiş, sağda düzenleme */}
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
         <div className="contents lg:flex lg:flex-col lg:gap-6">
           <div className="order-1 lg:order-none">
-            {/* Özet */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl tabular-nums">
@@ -149,7 +144,7 @@ export default async function HarcamaDetaySayfasi({
                     rel="noopener noreferrer"
                     className="block w-fit"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- 1 saatlik imzalı link, optimize edilecek bir şey yok */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={fisLinki}
                       alt={`"${harcama.aciklama}" harcamasının fişi`}

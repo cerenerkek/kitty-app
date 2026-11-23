@@ -1,17 +1,3 @@
--- =========================================================
--- Gün 7 / Bölüm 3: Harcama düzenleme
---
--- Ekleme ve düzenleme AYNI kuralları kullansın diye iki iç fonksiyon:
---   harcama_kisilerini_dogrula → kişileri ayıklar ve grupta mı diye bakar
---   paylari_yaz                → kuruş kuralıyla payları (yeniden) yazar
--- Böylece kuruş kuralı tek bir yerde duruyor.
--- =========================================================
-
--- ---------------------------------------------------------
--- PARÇA 1: Ortak iç fonksiyonlar (API'den çağrılamaz)
--- ---------------------------------------------------------
-
--- Boşları ve tekrarları atar, ödeyen ve bölünenler grupta mı kontrol eder.
 create or replace function public.harcama_kisilerini_dogrula(
   p_grup_id    uuid,
   p_odeyen_id  uuid,
@@ -53,7 +39,6 @@ begin
 end;
 $$;
 
--- Eşit böl: taban pay + artan kuruşlar ilk kişilere. Eski payları siler, yenilerini yazar.
 create or replace function public.paylari_yaz(
   p_harcama_id  uuid,
   p_tutar_kurus bigint,
@@ -81,10 +66,6 @@ $$;
 revoke execute on function public.harcama_kisilerini_dogrula(uuid, uuid, uuid[]) from public, anon, authenticated;
 revoke execute on function public.paylari_yaz(uuid, bigint, uuid[]) from public, anon, authenticated;
 
--- ---------------------------------------------------------
--- PARÇA 2: harcama_ekle → ortak fonksiyonları kullanacak şekilde
--- (davranış aynı; sadece kurallar artık tek yerde)
--- ---------------------------------------------------------
 create or replace function public.harcama_ekle(
   p_grup_id      uuid,
   p_aciklama     text,
@@ -133,9 +114,6 @@ begin
 end;
 $$;
 
--- ---------------------------------------------------------
--- PARÇA 3: harcama_duzenle
--- ---------------------------------------------------------
 create or replace function public.harcama_duzenle(
   p_harcama_id   uuid,
   p_aciklama     text,
@@ -194,7 +172,6 @@ begin
 
   v_yeni := public.harcama_jsonu(p_harcama_id);
 
-  -- Hiçbir şey değişmediyse geçmişe boş kayıt yazma
   if v_eski is distinct from v_yeni then
     insert into public.expense_history (group_id, expense_id, islem, yapan_id, eski, yeni)
     values (v_grup_id, p_harcama_id, 'duzenlendi', v_ben, v_eski, v_yeni);

@@ -36,7 +36,6 @@ const ozellikler = [
 
 export default function Home() {
   return (
-    // Telefon: tek sütun. Bilgisayar: solda tanıtım + butonlar, sağda özellik kartları.
     <main className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-8 px-4 py-10 lg:grid lg:max-w-6xl lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8">
       <div className="absolute top-4 right-4">
         <TemaDugmesi />

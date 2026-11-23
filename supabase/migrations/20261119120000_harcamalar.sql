@@ -1,9 +1,3 @@
--- =========================================================
--- Gün 3: Harcamalar ve kişi başı paylar
--- Para birimi: KURUŞ (tam sayı). 450,50 TL = 45050
--- =========================================================
-
--- 1) Harcamalar
 create table public.expenses (
   id            uuid primary key default gen_random_uuid(),
   group_id      uuid not null references public.groups (id) on delete cascade,
@@ -18,10 +12,8 @@ create table public.expenses (
   created_at    timestamptz not null default now()
 );
 
--- Grup sayfası "bu grubun harcamaları, yeniden eskiye" diye sorar → bu index hızlandırır
 create index expenses_group_tarih_idx on public.expenses (group_id, tarih desc);
 
--- 2) Kim ne kadar pay aldı (her harcama için kişi başı bir satır)
 create table public.expense_splits (
   expense_id  uuid not null references public.expenses (id) on delete cascade,
   user_id     uuid not null references public.profiles (id),
@@ -29,11 +21,7 @@ create table public.expense_splits (
   primary key (expense_id, user_id)
 );
 
--- Gün 4'te "bu kişinin toplam payı" sorgusu için
 create index expense_splits_user_idx on public.expense_splits (user_id);
--- =========================================================
--- RLS: sadece grubun üyeleri görebilir
--- =========================================================
 alter table public.expenses       enable row level security;
 alter table public.expense_splits enable row level security;
 
@@ -53,13 +41,8 @@ create policy "Grup uyeleri paylari gorebilir"
     )
   );
 
--- Kullanıcılar SADECE okuyabilir. Yazma işi aşağıdaki fonksiyondan geçer.
 grant select on public.expenses       to authenticated;
 grant select on public.expense_splits to authenticated;
--- =========================================================
--- harcama_ekle: harcamayı ve payları TEK işlemde yazar.
--- Bir hata olursa hiçbiri yazılmaz (transaction).
--- =========================================================
 create or replace function public.harcama_ekle(
   p_grup_id      uuid,
   p_aciklama     text,
@@ -80,17 +63,14 @@ declare
   v_taban       bigint;
   v_artan       bigint;
 begin
-  -- 1) Giriş yapmış mı?
   if auth.uid() is null then
     raise exception 'Giriş yapmalısın' using errcode = '28000';
   end if;
 
-  -- 2) Harcamayı ekleyen bu grubun üyesi mi?
   if not public.grup_uyesi_mi(p_grup_id) then
     raise exception 'Bu grubun üyesi değilsin' using errcode = '42501';
   end if;
 
-  -- 3) Bölünecek kişiler: boşları ve tekrarları at
   select array_agg(distinct x) into p_bolunenler
   from unnest(p_bolunenler) as x
   where x is not null;
@@ -100,7 +80,6 @@ begin
     raise exception 'En az bir kişi seçmelisin' using errcode = '22023';
   end if;
 
-  -- 4) Ödeyen bu grubun üyesi mi?
   if not exists (
     select 1 from public.group_members
     where group_id = p_grup_id and user_id = p_odeyen_id
@@ -108,7 +87,6 @@ begin
     raise exception 'Ödeyen kişi grupta değil' using errcode = '22023';
   end if;
 
-  -- 5) Bölünen herkes bu grubun üyesi mi?
   if (
     select count(*) from public.group_members
     where group_id = p_grup_id and user_id = any (p_bolunenler)
@@ -116,12 +94,10 @@ begin
     raise exception 'Seçilen kişilerden biri grupta değil' using errcode = '22023';
   end if;
 
-  -- 6) Tarih ileri bir gün olamaz (+1 gün tolerans: sunucu UTC, Türkiye UTC+3)
   if p_tarih is not null and p_tarih > current_date + 1 then
     raise exception 'Tarih ileri bir gün olamaz' using errcode = '22023';
   end if;
 
-  -- 7) Harcamayı yaz
   insert into public.expenses
     (group_id, aciklama, tutar_kurus, odeyen_id, kategori, tarih, olusturan_id)
   values
@@ -129,10 +105,8 @@ begin
      coalesce(p_tarih, current_date), auth.uid())
   returning id into v_harcama_id;
 
-  -- 8) Eşit böl: taban pay + artan kuruşlar ilk kişilere birer birer
-  --    Örnek: 10000 / 3 → taban 3333, artan 1 → 3334, 3333, 3333
-  v_taban := p_tutar_kurus / v_kisi_sayisi;   -- tam sayı bölmesi
-  v_artan := p_tutar_kurus % v_kisi_sayisi;   -- kalan
+  v_taban := p_tutar_kurus / v_kisi_sayisi;
+  v_artan := p_tutar_kurus % v_kisi_sayisi;
 
   insert into public.expense_splits (expense_id, user_id, pay_kurus)
   select v_harcama_id,

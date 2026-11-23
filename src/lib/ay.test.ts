@@ -47,7 +47,7 @@ describe("ayKaydir", () => {
       for (let ay = 1; ay <= 12; ay++) {
         const a = `${yil}-${String(ay).padStart(2, "0")}`;
         expect(ayKaydir(ayKaydir(a, 1), -1)).toBe(a);
-        expect(ayCozumle(ayKaydir(a, 1), "x")).not.toBe("x"); // sonuç hep geçerli biçimde
+        expect(ayCozumle(ayKaydir(a, 1), "x")).not.toBe("x");
       }
     }
   });

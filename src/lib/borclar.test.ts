@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { odemeleriHesapla, type Bakiye, type Odeme } from "./borclar";
 
-// Yardımcı: ödemeleri uygulayınca herkesin bakiyesi ne olur?
 function uygula(bakiyeler: Bakiye[], odemeler: Odeme[]) {
   const son = new Map(bakiyeler.map((b) => [b.id, b.net]));
   for (const o of odemeler) {
-    son.set(o.kimden, son.get(o.kimden)! + o.tutar); // borçlu öder → borcu azalır
-    son.set(o.kime, son.get(o.kime)! - o.tutar); // alacaklı alır → alacağı azalır
+    son.set(o.kimden, son.get(o.kimden)! + o.tutar);
+    son.set(o.kime, son.get(o.kime)! - o.tutar);
   }
   return son;
 }
@@ -91,7 +90,6 @@ describe("odemeleriHesapla", () => {
   });
 
   it("rastgele 1000 grup: kurallar her zaman geçerli", () => {
-    // Tekrarlanabilir rastgele sayı üreteci (her çalıştırmada aynı sayılar)
     let tohum = 42;
     const rastgele = (n: number) => {
       tohum = (tohum * 1103515245 + 12345) % 2147483648;
@@ -99,27 +97,24 @@ describe("odemeleriHesapla", () => {
     };
 
     for (let deneme = 0; deneme < 1000; deneme++) {
-      const kisiSayisi = 2 + rastgele(9); // 2–10 kişi
+      const kisiSayisi = 2 + rastgele(9);
       const bakiyeler: Bakiye[] = [];
       let toplam = 0;
       for (let k = 0; k < kisiSayisi - 1; k++) {
-        const net = rastgele(200001) - 100000; // −1000 ₺ ile +1000 ₺ arası
+        const net = rastgele(200001) - 100000;
         bakiyeler.push({ id: `kisi${k}`, net });
         toplam += net;
       }
-      bakiyeler.push({ id: `kisi${kisiSayisi - 1}`, net: -toplam }); // toplam 0 olsun
+      bakiyeler.push({ id: `kisi${kisiSayisi - 1}`, net: -toplam });
 
       const sonuc = odemeleriHesapla(bakiyeler);
 
-      // Kural 1: en fazla (kişi − 1) ödeme
       expect(sonuc.length).toBeLessThanOrEqual(kisiSayisi - 1);
-      // Kural 2: her ödeme pozitif tam sayı ve kişi kendine ödemiyor
       for (const o of sonuc) {
         expect(Number.isInteger(o.tutar)).toBe(true);
         expect(o.tutar).toBeGreaterThan(0);
         expect(o.kimden).not.toBe(o.kime);
       }
-      // Kural 3: ödemeler yapılınca herkes tam 0'a iner
       for (const net of uygula(bakiyeler, sonuc).values()) expect(net).toBe(0);
     }
   });

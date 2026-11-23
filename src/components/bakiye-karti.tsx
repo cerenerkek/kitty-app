@@ -4,7 +4,6 @@ import { odemeleriHesapla, type Bakiye, type Odeme } from "@/lib/borclar";
 import { OdendiButonu } from "@/components/odendi-butonu";
 import { OdemeFormu } from "@/components/odeme-formu";
 
-// +1.126,67 ₺ / −563,33 ₺ biçiminde işaretli tutar
 function isaretliTL(kurus: number) {
   if (kurus > 0) return `+${formatTL(kurus)}`;
   if (kurus < 0) return `−${formatTL(-kurus)}`;
@@ -29,7 +28,6 @@ export function BakiyeKarti({
   const ad = (id: string) =>
     id === benimId ? "Sen" : (isimler.get(id) ?? "Eski üye");
 
-  // Algoritma toplam 0 değilse hata fırlatır → sayfa çökmesin, uyarı gösterelim
   let oneriler: Odeme[] | null;
   try {
     oneriler = odemeleriHesapla(bakiyeler);
@@ -45,7 +43,6 @@ export function BakiyeKarti({
         <CardTitle className="text-base">Bakiyeler</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
-        {/* 1) Benim durumum: tek cümle */}
         <p className="rounded-lg bg-vurgu px-3 py-2 text-sm text-vurgu-yazi">
           {benimNet > 0 ? (
             <>
@@ -62,7 +59,6 @@ export function BakiyeKarti({
           )}
         </p>
 
-        {/* 2) Herkesin net bakiyesi */}
         <ul className="flex flex-col gap-2">
           {bakiyeler.map((b) => (
             <li
@@ -90,7 +86,6 @@ export function BakiyeKarti({
           ))}
         </ul>
 
-        {/* 3) Önerilen ödemeler */}
         <div className="flex flex-col gap-2">
           <h3 className="text-sm font-semibold text-muted-foreground">
             Önerilen ödemeler
@@ -125,7 +120,6 @@ export function BakiyeKarti({
                       </p>
                     </div>
 
-                    {/* Buton sadece ödeyen ya da alan kişiye görünür */}
                     {(benOdeyecegim || benAlacagim) && (
                       <OdendiButonu
                         grupId={grupId}
@@ -134,7 +128,7 @@ export function BakiyeKarti({
                         tutar={o.tutar}
                         bugun={bugun}
                         etiket={benOdeyecegim ? "Ödedim" : "Aldım"}
-                        onayMetni={`${ad(o.kimden)} → ${ad(o.kime)}: ${formatTL(o.tutar)} ödeme olarak kaydedilsin mi? Bu kayıt sonradan silinemez.`}
+                        onayMetni={`${ad(o.kimden)} → ${ad(o.kime)}: ${formatTL(o.tutar)}. Bu kayıt sonradan silinemez.`}
                       />
                     )}
                   </li>
@@ -144,7 +138,6 @@ export function BakiyeKarti({
           )}
         </div>
 
-        {/* 4) Kısmi / farklı tutarlı ödeme */}
         <OdemeFormu
           grupId={grupId}
           kisiler={kisiler}

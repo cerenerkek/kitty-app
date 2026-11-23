@@ -1,11 +1,7 @@
-// Fiş görselleri için saf yardımcılar (tarayıcıya da sunucuya da bağımlı değil → test edilebilir)
-
-export const FIS_EN_BUYUK_KENAR = 1600; // px: fiş yazıları okunur kalsın, dosya küçülsün
-export const FIS_EN_BUYUK_BOYUT = 1024 * 1024; // 1 MB (Storage klasörünün sınırıyla aynı)
+export const FIS_EN_BUYUK_KENAR = 1600;
+export const FIS_EN_BUYUK_BOYUT = 1024 * 1024;
 export const FIS_TURLERI = ["image/jpeg", "image/png", "image/webp"] as const;
 
-// Oranı koruyarak küçült; zaten küçükse büyütme.
-// 4000×3000 → 1600×1200   |   3000×4000 → 1200×1600   |   800×600 → 800×600
 export function hedefBoyut(
   genislik: number,
   yukseklik: number,
@@ -19,13 +15,10 @@ export function hedefBoyut(
   };
 }
 
-// Dosya türü kabul ediliyor mu?
 export function fisTuruGecerli(tur: string): boolean {
   return (FIS_TURLERI as readonly string[]).includes(tur);
 }
 
-// Storage'daki yol: "<grup>/<harcama>/<rastgele>.<uzantı>"
-// İlk klasör grup id'si: Storage güvenlik kuralları buna bakıyor.
 export function fisYolu(
   grupId: string,
   harcamaId: string,

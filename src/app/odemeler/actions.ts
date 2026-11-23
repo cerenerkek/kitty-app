@@ -63,11 +63,11 @@ export async function odemeKaydet(
         : error.code === "42501"
           ? "Bu grubun üyesi değilsin."
           : error.code === "22023"
-            ? error.message // fonksiyondaki Türkçe mesajlar
+            ? error.message
             : "Ödeme kaydedilemedi. Lütfen tekrar dene.";
     return { hata: mesaj, degerler };
   }
 
-  refresh(); // bakiyeler, öneriler ve geçmiş yeniden hesaplanır
+  refresh();
   return { basarili: true };
 }

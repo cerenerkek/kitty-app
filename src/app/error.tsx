@@ -1,4 +1,4 @@
-"use client"; // Hata sınırları (error boundary) client component olmak zorunda
+"use client";
 
 import { useEffect } from "react";
 import Link from "next/link";
@@ -11,13 +11,10 @@ export default function HataSayfasi({
   error: unknown;
   retry: () => void;
 }) {
-  // Hatayı tarayıcı konsoluna yaz (geliştirirken nedenini görmek için)
   useEffect(() => {
     console.error(error);
   }, [error]);
 
-  // Sunucu hatalarında Next.js bir "digest" (hata kodu) verir.
-  // Ayrıntı kullanıcıya gösterilmez; bu kodla Vercel kayıtlarında aranabilir.
   const hataKodu =
     error instanceof Error && "digest" in error
       ? String((error as Error & { digest?: string }).digest ?? "")

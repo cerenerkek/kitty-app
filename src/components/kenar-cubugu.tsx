@@ -4,14 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, Plus } from "lucide-react";
 
-// Grup menüsü: bilgisayarda solda sabit, telefonda açılır panelin içinde.
-// Hangi grubun açık olduğunu adresten anlar.
 export function KenarCubugu({
   gruplar,
   onSec,
 }: {
   gruplar: { id: string; ad: string }[];
-  onSec?: () => void; // telefonda: bir bağlantıya dokununca paneli kapat
+  onSec?: () => void;
 }) {
   const yol = usePathname();
   const satir =

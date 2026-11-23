@@ -28,7 +28,6 @@ export async function davetKatil(
     return { hata: "Gruba katılamadın. Lütfen tekrar dene." };
   }
 
-  // Kenar çubuğundaki grup listesi de yenilensin (yeni grup görünsün)
   revalidatePath("/gruplar", "layout");
   redirect(`/gruplar/${grupId}`);
 }

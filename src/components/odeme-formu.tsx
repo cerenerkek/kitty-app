@@ -26,7 +26,7 @@ export function OdemeFormu({
   const d = durum?.degerler;
 
   const ilkDiger = kisiler.find((k) => k.id !== benimId);
-  if (!ilkDiger) return null; // grupta tek başınaysan ödeme olmaz
+  if (!ilkDiger) return null;
 
   const secenekler = kisiler.map((k) => (
     <option key={k.id} value={k.id}>

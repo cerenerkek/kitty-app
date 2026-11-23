@@ -6,7 +6,7 @@ describe("kurusaCevir", () => {
     expect(kurusaCevir("450,50")).toBe(45050);
     expect(kurusaCevir("450.50")).toBe(45050);
     expect(kurusaCevir("450,5")).toBe(45050);
-    expect(kurusaCevir("4,35")).toBe(435); // parseFloat burada 434,99.. verirdi
+    expect(kurusaCevir("4,35")).toBe(435);
     expect(kurusaCevir("0,01")).toBe(1);
   });
 

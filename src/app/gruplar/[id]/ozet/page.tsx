@@ -18,7 +18,6 @@ export const metadata: Metadata = { title: "Aylık özet · Kitty" };
 const UUID_KALIBI =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// aylik_ozet fonksiyonunun döndürdüğü satır
 type OzetSatiri = {
   kategori: string;
   toplam_kurus: number;
@@ -33,7 +32,6 @@ export default async function AylikOzetSayfasi({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ ay?: string | string[] }>;
 }) {
-  // Next.js 16: params ve searchParams Promise → await ile okunur
   const { id } = await params;
   if (!UUID_KALIBI.test(id)) notFound();
   const { ay: ayParametresi } = await searchParams;
@@ -45,7 +43,6 @@ export default async function AylikOzetSayfasi({
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  // RLS: üyesi değilsen grup görünmez → 404
   const { data: grup } = await supabase
     .from("groups")
     .select("id, ad")
@@ -53,15 +50,13 @@ export default async function AylikOzetSayfasi({
     .maybeSingle();
   if (!grup) notFound();
 
-  // Hangi ay? Adresteki ?ay= geçersizse ya da yoksa → bu ay (İstanbul saatine göre)
   const bugun = bugunIstanbul();
   const simdikiAy = buAy(bugun);
   const ay = ayCozumle(ayParametresi, simdikiAy);
   const oncekiAy = ayKaydir(ay, -1);
   const sonrakiAy = ayKaydir(ay, 1);
-  const sonrakiGosterilsin = sonrakiAy <= simdikiAy; // gelecek aya gitme
+  const sonrakiGosterilsin = sonrakiAy <= simdikiAy;
 
-  // Kategori özeti (veritabanı toplar, RLS: sadece üyeysen gelir)
   const { data } = await supabase.rpc("aylik_ozet", {
     p_grup_id: id,
     p_ay: ayinIlkGunu(ay),
@@ -87,7 +82,6 @@ export default async function AylikOzetSayfasi({
 
       <h1 className="text-2xl font-bold">Aylık özet</h1>
 
-      {/* Ay seçimi */}
       <nav
         aria-label="Ay seçimi"
         className="flex items-center justify-between text-sm"
@@ -105,7 +99,6 @@ export default async function AylikOzetSayfasi({
         )}
       </nav>
 
-      {/* İki ana rakam */}
       <section className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border p-4">
           <p className="text-xs text-muted-foreground">Grubun harcaması</p>
@@ -136,9 +129,7 @@ export default async function AylikOzetSayfasi({
           </CardContent>
         </Card>
       ) : (
-        // Bilgisayarda grafik solda, ayrıntı tablosu sağda
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
-          {/* Grafik */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Kategorilere göre</CardTitle>
@@ -148,7 +139,6 @@ export default async function AylikOzetSayfasi({
             </CardContent>
           </Card>
 
-          {/* Aynı veri tablo olarak: kesin rakamlar + yüzde + adet */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Ayrıntı</CardTitle>

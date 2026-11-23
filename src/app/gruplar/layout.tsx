@@ -2,9 +2,6 @@ import { Suspense } from "react";
 import { UstCubuk } from "@/components/ust-cubuk";
 import { GrupMenusu, MobilGrupMenusu } from "@/components/grup-menusu";
 
-// Giriş yapılmış sayfaların ortak iskeleti:
-//   telefon     → üst çubuk (☰ ile açılan grup menüsü) + sayfa
-//   bilgisayar  → üst çubuk + soldaki grup menüsü + sayfa
 export default function UygulamaDuzeni({
   children,
 }: {
@@ -23,7 +20,6 @@ export default function UygulamaDuzeni({
       />
       <div className="mx-auto flex w-full max-w-[1600px]">
         <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 overflow-y-auto border-r bg-sidebar lg:block">
-          {/* Grup listesi kişiye özel → kendi Suspense'i içinde, iskelet önce görünür */}
           <Suspense fallback={<MenuIskeleti />}>
             <GrupMenusu />
           </Suspense>

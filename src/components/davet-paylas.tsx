@@ -29,7 +29,7 @@ export function DavetPaylas({
   function olustur() {
     setHata(null);
     startTransition(async () => {
-      const sonuc = await davetOlustur(grupId); // sunucuda çalışır
+      const sonuc = await davetOlustur(grupId);
       if ("hata" in sonuc) setHata(sonuc.hata);
       else setLink(`${window.location.origin}/davet/${sonuc.token}`);
     });
@@ -52,10 +52,9 @@ export function DavetPaylas({
       try {
         await navigator.share({ title: "Kitty", text: mesaj, url: link });
       } catch {
-        // kullanıcı paylaşım menüsünü kapattı, sorun değil
       }
     } else {
-      kopyala(); // bilgisayarda paylaşım menüsü yoksa kopyala
+      kopyala();
     }
   }
 

@@ -14,8 +14,6 @@ import { GrupOlusturFormu } from "@/components/grup-olustur-formu";
 export const metadata: Metadata = { title: "Gruplarım · Kitty" };
 
 export default async function GruplarSayfasi() {
-  // Bu sayfa her istekte yeniden üretilir (oturum + Supabase'in saat kontrolü).
-  // connection() olmadan Next.js 16 "Date.now() while prerendering" uyarısı verir.
   await connection();
   const supabase = await createClient();
 
@@ -24,10 +22,8 @@ export default async function GruplarSayfasi() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  // İki sorguyu aynı anda çalıştır (daha hızlı)
   const [{ data: profil }, { data: gruplar }] = await Promise.all([
     supabase.from("profiles").select("ad_soyad").eq("id", user.id).single(),
-    // RLS sayesinde sadece üyesi olduğum gruplar gelir; group_members(count) = üye sayısı
     supabase
       .from("groups")
       .select("id, ad, group_members(count)")
@@ -35,7 +31,6 @@ export default async function GruplarSayfasi() {
   ]);
 
   return (
-    // Telefonda tek sütun; bilgisayarda geniş alan ve gruplar ızgara halinde
     <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8 lg:max-w-5xl lg:px-8">
       <section>
         <h1 className="text-2xl font-bold">
@@ -44,7 +39,6 @@ export default async function GruplarSayfasi() {
         <p className="text-muted-foreground">Gruplarını buradan yönet.</p>
       </section>
 
-      {/* Kenar çubuğundaki "Yeni grup" bağlantısı buraya getirir */}
       <div id="yeni-grup" className="scroll-mt-20 lg:max-w-md">
         <GrupOlusturFormu />
       </div>

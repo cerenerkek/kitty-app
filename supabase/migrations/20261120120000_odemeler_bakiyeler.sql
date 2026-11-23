@@ -1,8 +1,3 @@
--- =========================================================
--- Gün 4: Ödemeler (borç kapatma) ve bakiyeler
--- "Aleyna Ceren'e 500 TL ödedi" = odeyen: Aleyna, alan: Ceren
--- =========================================================
-
 create table public.settlements (
   id            uuid primary key default gen_random_uuid(),
   group_id      uuid not null references public.groups (id) on delete cascade,
@@ -24,11 +19,7 @@ create policy "Grup uyeleri odemeleri gorebilir"
   to authenticated
   using (public.grup_uyesi_mi(group_id));
 
--- Sadece okuma. Yazma işi odeme_kaydet fonksiyonundan geçer.
 grant select on public.settlements to authenticated;
--- =========================================================
--- odeme_kaydet: kontrollerden geçerse tek bir ödeme kaydı yazar
--- =========================================================
 create or replace function public.odeme_kaydet(
   p_grup_id      uuid,
   p_odeyen_id    uuid,
@@ -45,27 +36,22 @@ declare
   v_ben  uuid := auth.uid();
   v_id   uuid;
 begin
-  -- 1) Giriş yapmış mı?
   if v_ben is null then
     raise exception 'Giriş yapmalısın' using errcode = '28000';
   end if;
 
-  -- 2) Bu grubun üyesi mi?
   if not public.grup_uyesi_mi(p_grup_id) then
     raise exception 'Bu grubun üyesi değilsin' using errcode = '42501';
   end if;
 
-  -- 3) Kaydı giren kişi ya ödeyen ya da alan olmalı
   if v_ben is distinct from p_odeyen_id and v_ben is distinct from p_alan_id then
     raise exception 'Ödemeyi sadece ödeyen ya da alan kişi kaydedebilir' using errcode = '22023';
   end if;
 
-  -- 4) Kendine ödeme olmaz
   if p_odeyen_id = p_alan_id then
     raise exception 'Kişi kendine ödeme yapamaz' using errcode = '22023';
   end if;
 
-  -- 5) İki kişi de bu grupta mı?
   if (
     select count(*) from public.group_members
     where group_id = p_grup_id and user_id in (p_odeyen_id, p_alan_id)
@@ -73,7 +59,6 @@ begin
     raise exception 'Kişilerden biri grupta değil' using errcode = '22023';
   end if;
 
-  -- 6) İleri tarih olmaz (+1 gün tolerans: sunucu UTC)
   if p_tarih is not null and p_tarih > current_date + 1 then
     raise exception 'Tarih ileri bir gün olamaz' using errcode = '22023';
   end if;
@@ -87,11 +72,6 @@ begin
   return v_id;
 end;
 $$;
--- =========================================================
--- grup_bakiyeleri: her üyenin net bakiyesi (kuruş)
---   net = ödediği harcamalar − payları + yaptığı ödemeler − aldığı ödemeler
---   net > 0 alacaklı, net < 0 borçlu. Grubun toplamı her zaman 0.
--- =========================================================
 create or replace function public.grup_bakiyeleri(p_grup_id uuid)
 returns table (uye_id uuid, net_kurus bigint)
 language sql
@@ -117,7 +97,6 @@ as $$
   order by 2 desc;
 $$;
 
--- İzinler: anonim kullanıcı ikisini de çağıramaz
 revoke execute on function public.odeme_kaydet(uuid, uuid, uuid, bigint, date) from public, anon;
 grant  execute on function public.odeme_kaydet(uuid, uuid, uuid, bigint, date) to authenticated;
 

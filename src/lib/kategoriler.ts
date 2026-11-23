@@ -1,4 +1,3 @@
-// Veritabanındaki CHECK listesiyle AYNI olmalı (20261119120000_harcamalar.sql)
 export const KATEGORILER = [
   { kod: "market", ad: "Market", emoji: "🛒" },
   { kod: "fatura", ad: "Fatura", emoji: "💡" },
@@ -11,7 +10,6 @@ export const KATEGORILER = [
 
 export type KategoriKodu = (typeof KATEGORILER)[number]["kod"];
 
-// Zod'un z.enum() için istediği biçim: ["market", "fatura", ...]
 export const KATEGORI_KODLARI = KATEGORILER.map((k) => k.kod) as [
   KategoriKodu,
   ...KategoriKodu[],

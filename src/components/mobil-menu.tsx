@@ -5,8 +5,6 @@ import { createPortal } from "react-dom";
 import { Menu, X } from "lucide-react";
 import { KenarCubugu } from "@/components/kenar-cubugu";
 
-// Telefonda (lg altı) üst çubuktaki ☰ düğmesi: grup menüsünü soldan açılan panelde gösterir.
-// Bilgisayarda gizli; orada menü zaten solda sabit duruyor.
 export function MobilMenu({
   gruplar,
 }: {
@@ -14,7 +12,6 @@ export function MobilMenu({
 }) {
   const [acik, setAcik] = useState(false);
 
-  // Açıkken Escape ile kapat ve arkadaki sayfa kaymasın
   useEffect(() => {
     if (!acik) return;
     const tus = (e: KeyboardEvent) => {
@@ -41,13 +38,9 @@ export function MobilMenu({
         <Menu className="size-5" aria-hidden />
       </button>
 
-      {/* Portal: panel <body>'nin doğrudan altına çizilir. Üst çubuktaki
-          backdrop-blur, içindeki "fixed" öğeleri çubuğun 56 px'lik kutusuna
-          hapsediyordu; portal sayesinde panel tüm ekranı kaplıyor. */}
       {acik &&
         createPortal(
           <div className="fixed inset-0 z-50 lg:hidden">
-            {/* Karartma: dokununca kapanır */}
             <div
               className="absolute inset-0 bg-black/50"
               onClick={() => setAcik(false)}

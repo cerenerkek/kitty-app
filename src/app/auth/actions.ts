@@ -24,7 +24,7 @@ const girisSemasi = z.object({
   sifre: z.string().min(1, "Şifreni gir"),
 });
 
-// Supabase'in İngilizce hata kodlarını Türkçe mesajlara çevirir
+
 function hataMesaji(kod?: string) {
   switch (kod) {
     case "user_already_exists":
@@ -55,11 +55,9 @@ export async function kayitOl(
   };
   const degerler = { adSoyad: girdi.adSoyad, email: girdi.email };
 
-  // 1) Doğrulama (her zaman SUNUCUDA)
   const sonuc = kayitSemasi.safeParse(girdi);
   if (!sonuc.success) return { hata: sonuc.error.issues[0].message, degerler };
 
-  // 2) Supabase'e kayıt; ad soyad trigger'a "metadata" olarak gider
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email: sonuc.data.email,
@@ -68,7 +66,6 @@ export async function kayitOl(
   });
   if (error) return { hata: hataMesaji(error.code), degerler };
 
-  // 3) Başarılı → korumalı sayfaya
     redirect(guvenliHedef(formData.get("sonraki")));
 }
 

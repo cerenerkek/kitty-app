@@ -1,4 +1,3 @@
-// Grup sayfası yüklenirken: sayfanın düzenine benzeyen iskelet (telefon tek sütun, bilgisayar 3 sütun)
 export default function GrupYukleniyor() {
   const kutu = "animate-pulse rounded-xl bg-muted";
   return (

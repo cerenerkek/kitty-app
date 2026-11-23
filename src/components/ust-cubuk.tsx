@@ -3,13 +3,11 @@ import { LogOut } from "lucide-react";
 import { cikisYap } from "@/app/auth/actions";
 import { TemaDugmesi } from "@/components/tema-dugmesi";
 
-// Giriş yapılmış bütün sayfalarda en üstte duran çubuk (telefon ve bilgisayar)
 export function UstCubuk({ solMenu }: { solMenu?: React.ReactNode }) {
   return (
     <header className="sticky top-0 z-20 border-b bg-card/90 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-2">
-          {/* Telefonda ☰ grup menüsü (bilgisayarda gizli) */}
           {solMenu}
           <Link
             href="/gruplar"

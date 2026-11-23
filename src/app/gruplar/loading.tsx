@@ -1,5 +1,3 @@
-// Sayfa verisi (oturum + profil) gelene kadar gösterilen iskelet ekran.
-// Next.js bu dosyayı sayfanın etrafına otomatik bir <Suspense> olarak sarar.
 export default function Yukleniyor() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8 lg:max-w-5xl lg:px-8">

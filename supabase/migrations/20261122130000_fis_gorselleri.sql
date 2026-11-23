@@ -1,26 +1,10 @@
--- =========================================================
--- Gün 7 / Bölüm 2: Fiş görselleri (Supabase Storage)
---
--- Dosya yolu: <grup_id>/<harcama_id>/<rastgele>.jpg
---   → yolun ilk klasörü grup id'si: güvenlik kuralları buna bakar.
--- Klasör GİZLİ: görseller sadece 1 saatlik imzalı linkle açılır.
--- =========================================================
-
--- ---------------------------------------------------------
--- PARÇA 1: Harcamaya fiş sütunu + gizli klasör (bucket)
--- ---------------------------------------------------------
 alter table public.expenses add column fis_yolu text;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('fisler', 'fisler', false, 1048576,               -- en fazla 1 MB
-        array['image/jpeg', 'image/png', 'image/webp'])  -- sadece resim
+values ('fisler', 'fisler', false, 1048576,
+        array['image/jpeg', 'image/png', 'image/webp'])
 on conflict (id) do nothing;
 
--- ---------------------------------------------------------
--- PARÇA 2: Yardımcı fonksiyonlar (Storage kuralları kullanır)
--- ---------------------------------------------------------
-
--- Grubun yöneticisi miyim?
 create or replace function public.grup_yoneticisi_mi(p_group_id uuid)
 returns boolean
 language sql
@@ -36,9 +20,6 @@ as $$
   );
 $$;
 
--- Bu yola fiş yükleyebilir miyim?
--- Yol "<grup>/<harcama>/<dosya>" biçiminde olmalı, harcama o grupta olmalı,
--- ve ben ya harcamayı ekleyen ya da grup yöneticisi olmalıyım.
 create or replace function public.fis_yuklenebilir_mi(p_yol text)
 returns boolean
 language plpgsql
@@ -52,7 +33,6 @@ declare
   v_grup     uuid;
   v_harcama  uuid;
 begin
-  -- Biçim kontrolü (bozuk yol → hata değil, sadece "hayır")
   if array_length(v_parcalar, 1) <> 3
      or v_parcalar[1] !~ v_uuid
      or v_parcalar[2] !~ v_uuid then
@@ -76,11 +56,6 @@ grant  execute on function public.grup_yoneticisi_mi(uuid) to authenticated;
 revoke execute on function public.fis_yuklenebilir_mi(text) from public, anon;
 grant  execute on function public.fis_yuklenebilir_mi(text) to authenticated;
 
--- ---------------------------------------------------------
--- PARÇA 3: Storage güvenlik kuralları (storage.objects tablosu)
--- ---------------------------------------------------------
-
--- Görme: sadece o grubun üyeleri (yolun ilk klasörü = grup id'si)
 create policy "Fis: grup uyeleri gorebilir"
   on storage.objects for select
   to authenticated
@@ -90,7 +65,6 @@ create policy "Fis: grup uyeleri gorebilir"
     and public.grup_uyesi_mi(((storage.foldername(name))[1])::uuid)
   );
 
--- Yükleme: sadece harcamayı ekleyen ya da yönetici, doğru yola
 create policy "Fis: ekleyen veya yonetici yukleyebilir"
   on storage.objects for insert
   to authenticated
@@ -99,8 +73,6 @@ create policy "Fis: ekleyen veya yonetici yukleyebilir"
     and public.fis_yuklenebilir_mi(name)
   );
 
--- Silme: dosyayı yükleyen kişi ya da grubun yöneticisi.
--- (Harcama silindikten SONRA da çalışmalı; bu yüzden harcamaya bakmıyor.)
 create policy "Fis: yukleyen veya yonetici silebilir"
   on storage.objects for delete
   to authenticated
@@ -112,13 +84,7 @@ create policy "Fis: yukleyen veya yonetici silebilir"
       or public.grup_yoneticisi_mi(((storage.foldername(name))[1])::uuid)
     )
   );
--- Not: update kuralı yok → yüklenmiş fiş üzerine yazılamaz.
 
--- ---------------------------------------------------------
--- PARÇA 4: fis_bagla + harcama_sil (fiş yolunu döndürecek şekilde)
--- ---------------------------------------------------------
-
--- Yüklenen dosyayı harcamaya bağlar. Eski fişin yolunu döndürür (silinmesi için).
 create or replace function public.fis_bagla(p_harcama_id uuid, p_yol text)
 returns text
 language plpgsql
@@ -141,13 +107,11 @@ begin
     raise exception 'Harcama bulunamadı' using errcode = 'P0002';
   end if;
 
-  -- Yetki + yolun bu harcamaya ait olması (aynı kural, tek yerde)
   if not public.fis_yuklenebilir_mi(p_yol)
      or p_yol not like v_grup_id::text || '/' || p_harcama_id::text || '/%' then
     raise exception 'Bu harcamaya fiş ekleyemezsin' using errcode = '42501';
   end if;
 
-  -- Dosya gerçekten yüklenmiş olmalı
   if not exists (select 1 from storage.objects where bucket_id = 'fisler' and name = p_yol) then
     raise exception 'Fiş dosyası bulunamadı' using errcode = 'P0002';
   end if;
@@ -164,9 +128,6 @@ $$;
 revoke execute on function public.fis_bagla(uuid, text) from public, anon;
 grant  execute on function public.fis_bagla(uuid, text) to authenticated;
 
--- harcama_sil artık silinen harcamanın fiş yolunu döndürüyor
--- (uygulama, harcamadan sonra dosyayı da Storage'dan silecek).
--- Dönüş türü değiştiği için önce eskisini kaldırıyoruz.
 drop function public.harcama_sil(uuid);
 
 create function public.harcama_sil(p_harcama_id uuid)

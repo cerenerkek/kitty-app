@@ -28,19 +28,16 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Oturumu doğrular ve süresi dolmak üzereyse yeniler.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const yol = request.nextUrl.pathname;
 
-  // Giriş yapmamış biri korumalı sayfaya gelirse → /giris
   if (!user && KORUMALI_SAYFALAR.some((s) => yol.startsWith(s))) {
     return yonlendir(request, response, "/giris");
   }
 
-  // Giriş yapmış biri /giris veya /kayit sayfasına gelirse → /gruplar
   if (user && GIRIS_SAYFALARI.some((s) => yol.startsWith(s))) {
     return yonlendir(request, response, "/gruplar");
   }
@@ -48,7 +45,6 @@ export async function updateSession(request: NextRequest) {
   return response;
 }
 
-// Yönlendirirken yenilenmiş oturum çerezlerini kaybetmemek için kopyalarız.
 function yonlendir(
   request: NextRequest,
   response: NextResponse,

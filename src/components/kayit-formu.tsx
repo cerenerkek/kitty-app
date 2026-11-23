@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { useSearchParams } from "next/navigation";
 
 export function KayitFormu() {
-  // durum: sunucudan dönen hata · formAction: formu gönderen fonksiyon · bekliyor: istek sürüyor mu
   const [durum, formAction, bekliyor] = useActionState(kayitOl, undefined);
   const sonraki = useSearchParams().get("sonraki") ?? "";
   return (

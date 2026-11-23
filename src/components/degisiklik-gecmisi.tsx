@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
 import { formatAn } from "@/lib/tarih";
 
-// Geçmişte saklanan harcama görüntüsünden kullandığımız alanlar
 type HarcamaGoruntusu = { aciklama: string; tutar_kurus: number };
 
 export type GecmisKaydi = {
@@ -15,7 +14,6 @@ export type GecmisKaydi = {
   zaman: string;
 };
 
-// [başkası için, "sen" için] → "Ceren harcamayı sildi" / "Sen harcamayı sildin"
 const FIILLER: Record<GecmisKaydi["islem"], [string, string]> = {
   eklendi: ["harcama ekledi", "harcama ekledin"],
   duzenlendi: ["harcamayı düzenledi", "harcamayı düzenledin"],
@@ -62,7 +60,6 @@ export function DegisiklikGecmisi({
                   : "Bilinmeyen";
               const fiil = FIILLER[k.islem][benMiyim ? 1 : 0];
 
-              // Silmede sadece eski hal, eklemede sadece yeni hal var
               const harcama = k.yeni ?? k.eski;
               const tutarDegisti =
                 k.islem === "duzenlendi" &&

@@ -33,7 +33,6 @@ describe("hedefBoyut", () => {
       const y = rastgele(8000);
       const s = hedefBoyut(g, y);
       expect(Math.max(s.genislik, s.yukseklik)).toBeLessThanOrEqual(1600);
-      // Her kenar, oranın tam değerinden en fazla 1 piksel sapabilir (yuvarlama)
       const oran = Math.min(1, 1600 / Math.max(g, y));
       expect(Math.abs(s.genislik - g * oran)).toBeLessThanOrEqual(1);
       expect(Math.abs(s.yukseklik - y * oran)).toBeLessThanOrEqual(1);
@@ -52,7 +51,7 @@ describe("fisTuruGecerli", () => {
     expect(fisTuruGecerli("image/webp")).toBe(true);
     expect(fisTuruGecerli("image/gif")).toBe(false);
     expect(fisTuruGecerli("application/pdf")).toBe(false);
-    expect(fisTuruGecerli("image/svg+xml")).toBe(false); // SVG içinde kod olabilir
+    expect(fisTuruGecerli("image/svg+xml")).toBe(false);
   });
 });
 

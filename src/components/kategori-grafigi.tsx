@@ -14,26 +14,22 @@ import { formatTL } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
 
 export type KategoriOzeti = {
-  kategori: string; // "market"
-  toplam: number; // kuruş: grubun bu kategorideki harcaması
-  benimPayim: number; // kuruş: bu harcamalardaki benim payım
+  kategori: string;
+  toplam: number;
+  benimPayim: number;
   adet: number;
 };
 
 type Olcu = "grup" | "benim";
 
-// Tek renk: grafik büyüklük karşılaştırıyor, kategori adı zaten çubuğun yanında.
-// Renkler tema değişkenlerinden gelir → açık ve koyu modda otomatik değişir.
-// (--grafik iki mod için ayrı ayrı renk kontrol aracından geçti.)
 const CUBUK_RENGI = "var(--grafik)";
-const YAZI_RENGI = "var(--foreground)"; // yazılar çubuk renginde değil, normal yazı renginde
-const VURGU_ZEMINI = "var(--muted)"; // fareyle üstüne gelinen satırın arka planı
+const YAZI_RENGI = "var(--foreground)";
+const VURGU_ZEMINI = "var(--muted)";
 
 export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
   const [olcu, setOlcu] = useState<Olcu>("grup");
   const olcuAdi = olcu === "grup" ? "Grup toplamı" : "Benim payım";
 
-  // Seçilen ölçüye göre değer ve en büyükten küçüğe sıralama
   const satirlar = veriler
     .map((v) => {
       const k = kategoriBilgisi(v.kategori);
@@ -46,7 +42,6 @@ export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Grup toplamı / Benim payım düğmesi */}
       <div
         role="group"
         aria-label="Gösterilen tutar"
@@ -69,7 +64,6 @@ export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
         ))}
       </div>
 
-      {/* Yükseklik kategori sayısına göre: her çubuk için 44px */}
       <div className="w-full" style={{ height: satirlar.length * 44 + 16 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -89,7 +83,6 @@ export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
             <Tooltip
               cursor={{ fill: VURGU_ZEMINI }}
               formatter={(deger) => [formatTL(Number(deger)), olcuAdi]}
-              // Bilgi kutusu da temaya uysun (varsayılanı her zaman beyaz)
               contentStyle={{
                 background: "var(--popover)",
                 border: "1px solid var(--border)",

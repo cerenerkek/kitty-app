@@ -16,8 +16,6 @@ export const metadata: Metadata = {
   title: "Gruba davet · Kitty",
   description:
     "Bir arkadaşın seni Kitty'de ortak harcama grubuna davet etti. Katılmak için dokun.",
-  // Dikkat: openGraph üst seviyedekiyle BİRLEŞMEZ, tamamen yerine geçer.
-  // Bu yüzden görsel, site adı ve dil burada tekrar yazılıyor.
   openGraph: {
     title: "Kitty'de bir gruba davet edildin 🐱",
     description:
@@ -34,7 +32,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  // Davet linkleri kişiye özel: arama motorları listelemesin
   robots: { index: false, follow: false },
 };
 
@@ -54,14 +51,11 @@ export default async function DavetSayfasi({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  await connection(); // her istekte üret (bkz. gruplar/page.tsx)
+  await connection();
   const supabase = await createClient();
 
-  // Bozuk biçimli token için veritabanına hiç gitme
   let davet: DavetBilgisi | null = null;
   if (TOKEN_KALIBI.test(token)) {
-    // Fonksiyon tablo döndürür (0 veya 1 satır). Tip tanımı olmadığı için
-    // TypeScript'e sonucun bir DavetBilgisi dizisi olduğunu biz söylüyoruz.
     const { data } = await supabase.rpc("davet_bilgisi", { p_token: token });
     davet = (data as DavetBilgisi[] | null)?.[0] ?? null;
   }
