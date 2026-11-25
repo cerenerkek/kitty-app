@@ -149,7 +149,8 @@ export async function harcamaDuzenle(
 ): Promise<HarcamaFormDurumu> {
   const harcamaId = String(formData.get("harcamaId") ?? "");
   const { degerler, sonuc, fis, fisHatasi } = formuOku(formData);
-  if (!z.uuid().safeParse(harcamaId).success) return { hata: "Geçersiz harcama.", degerler };
+  if (!z.uuid().safeParse(harcamaId).success)
+    return { hata: "Geçersiz harcama.", degerler };
   if (!sonuc.success) return { hata: sonuc.error.issues[0].message, degerler };
   if (fisHatasi) return { hata: fisHatasi, degerler };
 
@@ -179,7 +180,9 @@ export async function harcamaDuzenle(
     return { hata: mesaj, degerler };
   }
 
-  const uyari = fis ? await fisiYukle(supabase, h.grupId, harcamaId, fis) : null;
+  const uyari = fis
+    ? await fisiYukle(supabase, h.grupId, harcamaId, fis)
+    : null;
   if (uyari) {
     refresh();
     return { basarili: true, uyari };
@@ -191,7 +194,8 @@ export async function harcamaDuzenle(
 export type SilmeSonucu = { hata: string } | { basarili: true };
 
 export async function harcamaSil(harcamaId: string): Promise<SilmeSonucu> {
-  if (!z.uuid().safeParse(harcamaId).success) return { hata: "Geçersiz harcama." };
+  if (!z.uuid().safeParse(harcamaId).success)
+    return { hata: "Geçersiz harcama." };
 
   const supabase = await createClient();
   const { data: fisYoluSilinen, error } = await supabase.rpc("harcama_sil", {
@@ -206,7 +210,9 @@ export async function harcamaSil(harcamaId: string): Promise<SilmeSonucu> {
           ? "Bu harcamayı sadece ekleyen kişi ya da grup yöneticisi silebilir."
           : error.code === "P0002"
             ? "Harcama bulunamadı. Sayfayı yenile."
-            : "Harcama silinemedi. Lütfen tekrar dene.";
+            : error.code === "22023"
+              ? error.message
+              : "Harcama silinemedi. Lütfen tekrar dene.";
     return { hata: mesaj };
   }
 

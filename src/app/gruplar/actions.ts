@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -100,4 +100,51 @@ export async function grupSil(
 
   revalidatePath("/gruplar", "layout");
   redirect("/gruplar");
+}
+
+export type UyelikSonucu = { hata: string } | { basarili: true };
+
+function uyelikHatasi(error: { code?: string; message: string }) {
+  switch (error.code) {
+    case "28000":
+      return "Oturumun sona ermiş, tekrar giriş yap.";
+    case "42501":
+      return "Bunu sadece grup yöneticisi yapabilir.";
+    case "P0002":
+      return "Grup bulunamadı. Sayfayı yenile.";
+    case "22023":
+      return error.message;
+    default:
+      return "İşlem yapılamadı. Lütfen tekrar dene.";
+  }
+}
+
+export async function gruptanCik(grupId: string): Promise<UyelikSonucu> {
+  if (!z.uuid().safeParse(grupId).success) return { hata: "Geçersiz grup." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("gruptan_cik", { p_grup_id: grupId });
+  if (error) return { hata: uyelikHatasi(error) };
+
+  revalidatePath("/gruplar", "layout");
+  redirect("/gruplar");
+}
+
+export async function uyeyiCikar(
+  grupId: string,
+  kisiId: string,
+): Promise<UyelikSonucu> {
+  if (!z.uuid().safeParse(grupId).success || !z.uuid().safeParse(kisiId).success) {
+    return { hata: "Geçersiz istek." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("uyeyi_cikar", {
+    p_grup_id: grupId,
+    p_kisi_id: kisiId,
+  });
+  if (error) return { hata: uyelikHatasi(error) };
+
+  refresh();
+  return { basarili: true };
 }

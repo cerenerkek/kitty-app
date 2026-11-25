@@ -52,8 +52,12 @@ export default async function HarcamaDetaySayfasi({
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  const [{ data: harcama }, { data: uyeler }, { data: gecmis }] =
-    await Promise.all([
+  const [
+    { data: harcama },
+    { data: uyeler },
+    { data: gecmis },
+    { data: eskiUyeler },
+  ] = await Promise.all([
       supabase
         .from("expenses")
         .select(
@@ -78,6 +82,8 @@ export default async function HarcamaDetaySayfasi({
         .eq("expense_id", harcamaId)
         .order("zaman", { ascending: false })
         .overrideTypes<GecmisKaydi[], { merge: false }>(),
+
+      supabase.rpc("eski_uye_adlari", { p_grup_id: id }),
     ]);
   if (!harcama) notFound();
 
@@ -86,6 +92,14 @@ export default async function HarcamaDetaySayfasi({
     ad: u.profiles?.ad_soyad ?? "İsimsiz",
   }));
   const isimler = new Map(kisiler.map((k) => [k.id, k.ad]));
+  const uyeIdleri = new Set(kisiler.map((k) => k.id));
+  for (const e of (eskiUyeler ?? []) as { kisi_id: string; ad_soyad: string }[]) {
+    isimler.set(e.kisi_id, `${e.ad_soyad} (ayrıldı)`);
+  }
+  const ayrilanVar = [
+    harcama.odeyen_id,
+    ...harcama.expense_splits.map((s) => s.user_id),
+  ].some((kisiId) => !uyeIdleri.has(kisiId));
   const ad = (kisiId: string) =>
     kisiId === user.id ? "Sen" : (isimler.get(kisiId) ?? "Eski üye");
 
@@ -165,7 +179,12 @@ export default async function HarcamaDetaySayfasi({
           </div>
         </div>
         <div className="order-2 flex flex-col gap-6 lg:order-none">
-          {degistirebilirim ? (
+          {ayrilanVar ? (
+            <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+              Bu harcamada gruptan ayrılmış biri var. Bakiyeler bozulmasın diye
+              silinemez ve düzenlenemez.
+            </p>
+          ) : degistirebilirim ? (
             <>
               <HarcamaFormu
                 grupId={id}

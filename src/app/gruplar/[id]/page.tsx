@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UyeListesi } from "@/components/uye-listesi";
 import { DavetPaylas } from "@/components/davet-paylas";
 import { GrupSilKarti } from "@/components/grup-sil-karti";
 import { HarcamaFormu } from "@/components/harcama-formu";
@@ -50,6 +50,7 @@ export default async function GrupDetaySayfasi({
     { data: bakiyeVerisi },
     { data: odemeKayitlari },
     { data: gecmis },
+    { data: eskiUyeler },
   ] = await Promise.all([
     supabase.from("groups").select("id, ad").eq("id", id).maybeSingle(),
 
@@ -89,6 +90,8 @@ export default async function GrupDetaySayfasi({
       .order("zaman", { ascending: false })
       .limit(10)
       .overrideTypes<GecmisKaydi[], { merge: false }>(),
+
+    supabase.rpc("eski_uye_adlari", { p_grup_id: id }),
   ]);
   if (!grup) notFound();
 
@@ -113,6 +116,12 @@ export default async function GrupDetaySayfasi({
     ad: u.profiles?.ad_soyad ?? "İsimsiz",
   }));
   const isimler = new Map(kisiler.map((k) => [k.id, k.ad]));
+  for (const e of (eskiUyeler ?? []) as {
+    kisi_id: string;
+    ad_soyad: string;
+  }[]) {
+    isimler.set(e.kisi_id, `${e.ad_soyad} (ayrıldı)`);
+  }
 
   const bakiyeler = (
     (bakiyeVerisi ?? []) as { uye_id: string; net_kurus: number }[]
@@ -148,35 +157,20 @@ export default async function GrupDetaySayfasi({
               bugun={bugun}
             />
           </div>
-          <Card className="order-6 lg:order-none">
-            <CardHeader>
-              <CardTitle className="text-base">
-                Üyeler ({uyeler?.length ?? 0})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="flex flex-col gap-2">
-                {uyeler?.map((u) => (
-                  <li
-                    key={u.user_id}
-                    className="flex items-center justify-between"
-                  >
-                    <span>
-                      {u.profiles?.ad_soyad ?? "İsimsiz"}
-                      {u.user_id === user.id && (
-                        <span className="text-muted-foreground"> (sen)</span>
-                      )}
-                    </span>
-                    {u.rol === "admin" && (
-                      <span className="rounded-full bg-vurgu px-2 py-0.5 text-xs font-medium text-vurgu-yazi">
-                        Yönetici
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <div className="order-6 lg:order-none">
+            <UyeListesi
+              grupId={grup.id}
+              uyeler={kisiler.map((k) => ({
+                ...k,
+                rol: uyeler?.find((u) => u.user_id === k.id)?.rol ?? "uye",
+              }))}
+              benimId={user.id}
+              yoneticiyim={yoneticiyim}
+              bakiyeler={Object.fromEntries(
+                bakiyeler.map((b) => [b.id, b.net]),
+              )}
+            />
+          </div>
           <div className="order-7 lg:order-none">
             <DavetPaylas grupId={grup.id} grupAdi={grup.ad} />
           </div>
