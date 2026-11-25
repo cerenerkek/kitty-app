@@ -1,11 +1,11 @@
 export const KATEGORILER = [
-  { kod: "market", ad: "Market", emoji: "🛒" },
-  { kod: "fatura", ad: "Fatura", emoji: "💡" },
-  { kod: "kira", ad: "Kira", emoji: "🏠" },
-  { kod: "ulasim", ad: "Ulaşım", emoji: "🚌" },
-  { kod: "yemek", ad: "Yemek", emoji: "🍽️" },
-  { kod: "eglence", ad: "Eğlence", emoji: "🎉" },
-  { kod: "diger", ad: "Diğer", emoji: "📦" },
+  { kod: "market", ad: "Market" },
+  { kod: "fatura", ad: "Fatura" },
+  { kod: "kira", ad: "Kira" },
+  { kod: "ulasim", ad: "Ulaşım" },
+  { kod: "yemek", ad: "Yemek" },
+  { kod: "eglence", ad: "Eğlence" },
+  { kod: "diger", ad: "Diğer" },
 ] as const;
 
 export type KategoriKodu = (typeof KATEGORILER)[number]["kod"];

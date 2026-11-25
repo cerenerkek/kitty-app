@@ -12,6 +12,7 @@ import {
 } from "@/components/degisiklik-gecmisi";
 import { formatTL, kurusuMetneCevir } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
+import { KategoriSimgesi } from "@/components/kategori-simgesi";
 import { bugunIstanbul, formatGun } from "@/lib/tarih";
 
 export const metadata: Metadata = { title: "Harcama · Kitty" };
@@ -123,9 +124,12 @@ export default async function HarcamaDetaySayfasi({
         ← Gruba dön
       </Link>
 
-      <h1 className="text-2xl font-bold">
-        {kategori.emoji} {harcama.aciklama}
-      </h1>
+      <div className="flex items-center gap-3">
+        <KategoriSimgesi kod={kategori.kod} boyut="lg" />
+        <h1 className="min-w-0 text-2xl font-bold break-words">
+          {harcama.aciklama}
+        </h1>
+      </div>
 
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
         <div className="contents lg:flex lg:flex-col lg:gap-6">

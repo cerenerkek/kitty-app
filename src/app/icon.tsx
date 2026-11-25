@@ -13,7 +13,7 @@ export default function Simge() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0f766e",
+          background: "#313076",
           borderRadius: 8,
           fontSize: 22,
         }}

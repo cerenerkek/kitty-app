@@ -1,3 +1,4 @@
+import { Paperclip, Pencil, Plus, Trash2, type LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
 import { formatAn } from "@/lib/tarih";
@@ -22,12 +23,12 @@ const FIILLER: Record<GecmisKaydi["islem"], [string, string]> = {
   fis_kaldirildi: ["fişi kaldırdı", "fişi kaldırdın"],
 };
 
-const SIMGELER: Record<GecmisKaydi["islem"], string> = {
-  eklendi: "➕",
-  duzenlendi: "✏️",
-  silindi: "🗑️",
-  fis_eklendi: "📎",
-  fis_kaldirildi: "📎",
+const SIMGELER: Record<GecmisKaydi["islem"], [LucideIcon, string]> = {
+  eklendi: [Plus, "bg-vurgu text-vurgu-yazi"],
+  duzenlendi: [Pencil, "bg-muted text-foreground"],
+  silindi: [Trash2, "bg-destructive/10 text-destructive"],
+  fis_eklendi: [Paperclip, "bg-muted text-foreground"],
+  fis_kaldirildi: [Paperclip, "bg-muted text-muted-foreground"],
 };
 
 export function DegisiklikGecmisi({
@@ -59,6 +60,7 @@ export function DegisiklikGecmisi({
                   ? (isimler.get(k.yapan_id) ?? "Eski üye")
                   : "Bilinmeyen";
               const fiil = FIILLER[k.islem][benMiyim ? 1 : 0];
+              const [Simge, renk] = SIMGELER[k.islem];
 
               const harcama = k.yeni ?? k.eski;
               const tutarDegisti =
@@ -72,8 +74,11 @@ export function DegisiklikGecmisi({
                   key={k.id}
                   className="flex items-start gap-3 py-2.5 text-sm first:pt-0 last:pb-0"
                 >
-                  <span aria-hidden className="pt-0.5">
-                    {SIMGELER[k.islem]}
+                  <span
+                    aria-hidden
+                    className={`flex size-7 shrink-0 items-center justify-center rounded-full ${renk}`}
+                  >
+                    <Simge className="size-3.5" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p>

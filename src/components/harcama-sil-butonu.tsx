@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { harcamaSil } from "@/app/harcamalar/actions";
 import { OnayPenceresi } from "@/components/onay-penceresi";
 
@@ -38,9 +39,13 @@ export function HarcamaSilButonu({
         onClick={() => setAcik(true)}
         disabled={bekliyor}
         aria-label={`"${aciklama}" harcamasını sil`}
-        className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:text-destructive disabled:opacity-50"
+        title="Harcamayı sil"
+        className="inline-flex size-8 items-center justify-center rounded-md text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
       >
-        {bekliyor ? "Siliniyor…" : "🗑️ Sil"}
+        <Trash2
+          className={`size-4 ${bekliyor ? "animate-pulse" : ""}`}
+          aria-hidden
+        />
       </button>
       {hata && (
         <p role="alert" className="max-w-40 text-right text-xs text-destructive">

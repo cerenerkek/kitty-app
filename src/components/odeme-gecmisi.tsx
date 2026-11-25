@@ -1,3 +1,4 @@
+import { HandCoins } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
 import { formatGun } from "@/lib/tarih";
@@ -39,8 +40,12 @@ export function OdemeGecmisi({
                 key={o.id}
                 className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
               >
-                <span role="img" aria-label="Ödeme" className="text-2xl">
-                  💸
+                <span
+                  role="img"
+                  aria-label="Ödeme"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-vurgu text-vurgu-yazi"
+                >
+                  <HandCoins className="size-4" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm">

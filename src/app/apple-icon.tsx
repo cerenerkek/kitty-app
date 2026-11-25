@@ -13,7 +13,7 @@ export default function AppleSimgesi() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0f766e",
+          background: "#313076",
           fontSize: 120,
         }}
       >

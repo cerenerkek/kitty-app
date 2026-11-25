@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTL } from "@/lib/para";
-import { kategoriBilgisi } from "@/lib/kategoriler";
 import { formatGun } from "@/lib/tarih";
+import { KategoriSimgesi } from "@/components/kategori-simgesi";
 import { HarcamaSilButonu } from "@/components/harcama-sil-butonu";
 
 export type Harcama = {
@@ -45,7 +45,6 @@ export function HarcamaListesi({
         ) : (
           <ul className="flex flex-col divide-y lg:max-h-[36rem] lg:overflow-y-auto lg:pr-1">
             {harcamalar.map((h) => {
-              const kategori = kategoriBilgisi(h.kategori);
               const odeyenMetni =
                 h.odeyen_id === benimId
                   ? "Sen ödedin"
@@ -61,13 +60,7 @@ export function HarcamaListesi({
                   key={h.id}
                   className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
                 >
-                  <span
-                    role="img"
-                    aria-label={kategori.ad}
-                    className="text-2xl"
-                  >
-                    {kategori.emoji}
-                  </span>
+                  <KategoriSimgesi kod={h.kategori} />
 
                   <div className="min-w-0 flex-1">
                     <Link

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { formatTL } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
+import { kategoriGorunumu } from "@/components/kategori-simgesi";
 
 export type KategoriOzeti = {
   kategori: string;
@@ -34,7 +35,8 @@ export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
     .map((v) => {
       const k = kategoriBilgisi(v.kategori);
       return {
-        ad: `${k.emoji} ${k.ad}`,
+        kod: k.kod,
+        ad: k.ad,
         tutar: olcu === "grup" ? v.toplam : v.benimPayim,
       };
     })
@@ -75,10 +77,16 @@ export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
             <YAxis
               type="category"
               dataKey="ad"
-              width={104}
+              width={124}
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 13, fill: YAZI_RENGI }}
+              tick={(p) => (
+                <KategoriEtiketi
+                  y={p.y}
+                  ad={String(p.payload.value)}
+                  kod={satirlar[p.index]?.kod ?? "diger"}
+                />
+              )}
             />
             <Tooltip
               cursor={{ fill: VURGU_ZEMINI }}
@@ -109,5 +117,36 @@ export function KategoriGrafigi({ veriler }: { veriler: KategoriOzeti[] }) {
         </ResponsiveContainer>
       </div>
     </div>
+  );
+}
+
+function KategoriEtiketi({
+  y,
+  ad,
+  kod,
+}: {
+  y: number | string;
+  ad: string;
+  kod: string;
+}) {
+  const { Simge, renk, dolgu } = kategoriGorunumu(kod);
+  const simgeRengi = renk
+    .split(" ")
+    .filter((s) => s.includes("text-"))
+    .join(" ");
+  return (
+    <g transform={`translate(4,${Number(y)})`}>
+      <circle cx={12} cy={0} r={12} className={dolgu} />
+      <Simge x={4} y={-8} width={16} height={16} className={simgeRengi} />
+      <text
+        x={30}
+        y={0}
+        dominantBaseline="central"
+        fontSize={13}
+        fill={YAZI_RENGI}
+      >
+        {ad}
+      </text>
+    </g>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { grupSil } from "@/app/gruplar/actions";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OnayPenceresi } from "@/components/onay-penceresi";
 
@@ -32,7 +33,8 @@ export function GrupSilKarti({
           disabled={bekliyor}
           onClick={() => setAcik(true)}
         >
-          {bekliyor ? "Siliniyor…" : "🗑️ Grubu sil"}
+          <Trash2 aria-hidden />
+          {bekliyor ? "Siliniyor…" : "Grubu sil"}
         </Button>
         {durum?.hata && (
           <p role="alert" className="text-sm text-destructive">

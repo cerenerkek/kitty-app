@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function GrupOlusturFormu() {
+export function GrupOlusturFormu({
+  otomatikOdak = false,
+}: {
+  otomatikOdak?: boolean;
+}) {
   const [durum, formAction, bekliyor] = useActionState(grupOlustur, undefined);
 
   return (
@@ -20,6 +24,7 @@ export function GrupOlusturFormu() {
           defaultValue={durum?.ad}
           maxLength={50}
           autoComplete="off"
+          autoFocus={otomatikOdak}
           required
         />
         <Button type="submit" disabled={bekliyor}>

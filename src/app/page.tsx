@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChartPie, Receipt, Scale, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { TemaDugmesi } from "@/components/tema-dugmesi";
 import {
@@ -10,25 +11,25 @@ import {
 
 const ozellikler = [
   {
-    ikon: "👥",
+    ikon: Users,
     baslik: "Grup kur",
     aciklama:
       "Ev arkadaşlarını, aileni ya da tatil ekibini davet linkiyle ekle.",
   },
   {
-    ikon: "🧾",
+    ikon: Receipt,
     baslik: "Harcamayı gir",
     aciklama:
       "Kim ödedi, kimler arasında bölündü, hangi kategori? Saniyeler içinde.",
   },
   {
-    ikon: "⚖️",
+    ikon: Scale,
     baslik: "Kim kime borçlu?",
     aciklama:
       "Kitty borçları hesaplar ve en az ödemeyle kapatmanın yolunu gösterir.",
   },
   {
-    ikon: "📊",
+    ikon: ChartPie,
     baslik: "Ay sonu özeti",
     aciklama: "Paranın nereye gittiğini kategori grafiğiyle gör.",
   },
@@ -73,7 +74,9 @@ export default function Home() {
           <Card key={o.baslik}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <span aria-hidden>{o.ikon}</span>
+                <span className="flex size-8 items-center justify-center rounded-lg bg-vurgu text-vurgu-yazi">
+                  <o.ikon className="size-4" aria-hidden />
+                </span>
                 {o.baslik}
               </CardTitle>
               <CardDescription>{o.aciklama}</CardDescription>

@@ -9,7 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { GrupOlusturFormu } from "@/components/grup-olustur-formu";
+import { ChevronRight, Users } from "lucide-react";
+import { YeniGrupAlani } from "@/components/yeni-grup-alani";
 
 export const metadata: Metadata = { title: "Gruplarım · Kitty" };
 
@@ -39,9 +40,7 @@ export default async function GruplarSayfasi() {
         <p className="text-muted-foreground">Gruplarını buradan yönet.</p>
       </section>
 
-      <div id="yeni-grup" className="scroll-mt-20 lg:max-w-md">
-        <GrupOlusturFormu />
-      </div>
+      <YeniGrupAlani baslangictaAcik={!gruplar?.length} />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-muted-foreground">
@@ -59,22 +58,28 @@ export default async function GruplarSayfasi() {
           </Card>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {gruplar.map((g) => (
-              <Link
-                key={g.id}
-                href={`/gruplar/${g.id}`}
-                className="block rounded-xl transition hover:opacity-80"
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">{g.ad}</CardTitle>
-                    <CardDescription>
-                      {g.group_members[0]?.count ?? 0} üye
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))}
+            {gruplar.map((g) => {
+              const uyeSayisi = g.group_members[0]?.count ?? 0;
+              return (
+                <Link
+                  key={g.id}
+                  href={`/gruplar/${g.id}`}
+                  className="group flex items-center gap-3 rounded-xl border bg-card p-4 shadow-xs transition hover:border-foreground/20 hover:shadow-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{g.ad}</p>
+                    <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Users className="size-3.5" aria-hidden />
+                      {uyeSayisi} üye
+                    </p>
+                  </div>
+                  <ChevronRight
+                    className="size-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground"
+                    aria-hidden
+                  />
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>

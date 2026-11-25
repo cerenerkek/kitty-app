@@ -9,15 +9,17 @@ export function OnayPenceresi({
   children,
   onayEtiketi,
   tehlikeli = false,
+  bilgi = false,
   onOnayla,
   onVazgec,
 }: {
   acik: boolean;
   baslik: string;
   children: ReactNode;
-  onayEtiketi: string;
+  onayEtiketi?: string;
   tehlikeli?: boolean;
-  onOnayla: () => void;
+  bilgi?: boolean;
+  onOnayla?: () => void;
   onVazgec: () => void;
 }) {
   const pencere = useRef<HTMLDialogElement>(null);
@@ -52,19 +54,27 @@ export function OnayPenceresi({
             {children}
           </div>
         </div>
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" onClick={onVazgec} autoFocus>
-            Vazgeç
-          </Button>
-          <Button
-            type="button"
-            variant={tehlikeli ? "destructive" : "default"}
-            onClick={onOnayla}
-            className={tehlikeli ? "bg-destructive text-white hover:bg-destructive/90 dark:bg-destructive dark:text-neutral-950 dark:hover:bg-destructive/90" : undefined}
-          >
-            {onayEtiketi}
-          </Button>
-        </div>
+        {bilgi ? (
+          <div className="flex justify-end">
+            <Button type="button" onClick={onVazgec} autoFocus>
+              Tamam
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={onVazgec} autoFocus>
+              Vazgeç
+            </Button>
+            <Button
+              type="button"
+              variant={tehlikeli ? "destructive" : "default"}
+              onClick={onOnayla}
+              className={tehlikeli ? "bg-destructive text-white hover:bg-destructive/90 dark:bg-destructive dark:text-neutral-950 dark:hover:bg-destructive/90" : undefined}
+            >
+              {onayEtiketi}
+            </Button>
+          </div>
+        )}
       </div>
     </dialog>
   );

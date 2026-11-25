@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { DoorOpen, Trash2 } from "lucide-react";
 import { gruptanCik, uyeyiCikar } from "@/app/gruplar/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,8 @@ import { OnayPenceresi } from "@/components/onay-penceresi";
 export type ListeUyesi = { id: string; ad: string; rol: "admin" | "uye" };
 
 type Islem = { tur: "cikar"; uye: ListeUyesi } | { tur: "cik" } | null;
+
+type Uyari = { baslik: string; mesaj: string } | null;
 
 export function UyeListesi({
   grupId,
@@ -24,33 +27,36 @@ export function UyeListesi({
   bakiyeler: Record<string, number>;
 }) {
   const [islem, setIslem] = useState<Islem>(null);
-  const [hata, setHata] = useState<string | null>(null);
+  const [uyari, setUyari] = useState<Uyari>(null);
   const [bekliyor, baslat] = useTransition();
 
   const tekYoneticiyim =
     yoneticiyim && uyeler.filter((u) => u.rol === "admin").length === 1;
 
   function cikarmayiDene(uye: ListeUyesi) {
-    setHata(null);
     if ((bakiyeler[uye.id] ?? 0) !== 0) {
-      setHata(
-        `${uye.ad} adlı kişinin borcu ya da alacağı kapanmadan gruptan çıkarılamaz.`,
-      );
+      setUyari({
+        baslik: `${uye.ad} çıkarılamaz`,
+        mesaj: "Bu kişinin borcu ya da alacağı var. Önce borç kapanmalı, bakiyesi 0 olunca gruptan çıkarabilirsin.",
+      });
       return;
     }
     setIslem({ tur: "cikar", uye });
   }
 
   function cikmayiDene() {
-    setHata(null);
     if (uyeler.length === 1) {
-      setHata("Gruptaki tek kişi sensin. Ayrılmak yerine grubu silebilirsin.");
+      setUyari({
+        baslik: "Gruptan ayrılamazsın",
+        mesaj: "Gruptaki tek kişi sensin. Ayrılmak yerine grubu silebilirsin.",
+      });
       return;
     }
     if ((bakiyeler[benimId] ?? 0) !== 0) {
-      setHata(
-        "Gruptan ayrılmadan önce borcunun ya da alacağının kapanması gerekiyor.",
-      );
+      setUyari({
+        baslik: "Gruptan ayrılamazsın",
+        mesaj: "Önce borcunun ya da alacağının kapanması gerekiyor. Bakiyen 0 olunca gruptan çıkabilirsin.",
+      });
       return;
     }
     setIslem({ tur: "cik" });
@@ -65,7 +71,9 @@ export function UyeListesi({
         secilen.tur === "cik"
           ? await gruptanCik(grupId)
           : await uyeyiCikar(grupId, secilen.uye.id);
-      if (sonuc && "hata" in sonuc) setHata(sonuc.hata);
+      if (sonuc && "hata" in sonuc) {
+        setUyari({ baslik: "İşlem yapılamadı", mesaj: sonuc.hata });
+      }
     });
   }
 
@@ -96,21 +104,16 @@ export function UyeListesi({
                     onClick={() => cikarmayiDene(u)}
                     disabled={bekliyor}
                     aria-label={`${u.ad} adlı kişiyi gruptan çıkar`}
-                    className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:text-destructive disabled:opacity-50"
+                    title="Gruptan çıkar"
+                    className="inline-flex size-8 items-center justify-center rounded-md text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
                   >
-                    Çıkar
+                    <Trash2 className="size-4" aria-hidden />
                   </button>
                 )}
               </span>
             </li>
           ))}
         </ul>
-
-        {hata && (
-          <p role="alert" className="text-sm text-destructive">
-            {hata}
-          </p>
-        )}
 
         <div className="border-t pt-3">
           <Button
@@ -120,7 +123,8 @@ export function UyeListesi({
             onClick={cikmayiDene}
             disabled={bekliyor}
           >
-            {bekliyor ? "İşleniyor…" : "🚪 Gruptan çık"}
+            <DoorOpen aria-hidden />
+            {bekliyor ? "İşleniyor…" : "Gruptan çık"}
           </Button>
         </div>
       </CardContent>
@@ -154,6 +158,15 @@ export function UyeListesi({
             )}
           </>
         )}
+      </OnayPenceresi>
+
+      <OnayPenceresi
+        acik={uyari !== null}
+        baslik={uyari?.baslik ?? ""}
+        bilgi
+        onVazgec={() => setUyari(null)}
+      >
+        <p>{uyari?.mesaj}</p>
       </OnayPenceresi>
     </Card>
   );

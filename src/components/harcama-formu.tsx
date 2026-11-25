@@ -6,6 +6,7 @@ import {
   harcamaEkle,
   type HarcamaDegerleri,
 } from "@/app/harcamalar/actions";
+import { Camera } from "lucide-react";
 import { KATEGORILER } from "@/lib/kategoriler";
 import { FIS_EN_BUYUK_BOYUT, fisTuruGecerli } from "@/lib/gorsel";
 import { fisiKucult } from "@/lib/gorsel-tarayici";
@@ -142,7 +143,7 @@ export function HarcamaFormu({
               >
                 {KATEGORILER.map((k) => (
                   <option key={k.kod} value={k.kod}>
-                    {k.emoji} {k.ad}
+                    {k.ad}
                   </option>
                 ))}
               </select>
@@ -216,9 +217,10 @@ export function HarcamaFormu({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="fis">
+              <Camera className="size-4 text-muted-foreground" aria-hidden />
               {mevcutFisVar
-                ? "📷 Fişi değiştir (isteğe bağlı)"
-                : "📷 Fiş fotoğrafı (isteğe bağlı)"}
+                ? "Fişi değiştir (isteğe bağlı)"
+                : "Fiş fotoğrafı (isteğe bağlı)"}
             </Label>
             <input
               id="fis"

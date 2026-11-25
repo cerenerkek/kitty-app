@@ -14,6 +14,7 @@ import {
   DegisiklikGecmisi,
   type GecmisKaydi,
 } from "@/components/degisiklik-gecmisi";
+import { ChartPie } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { bugunIstanbul } from "@/lib/tarih";
 
@@ -141,7 +142,8 @@ export default async function GrupDetaySayfasi({
           href={`/gruplar/${grup.id}/ozet`}
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >
-          📊 Aylık özet
+          <ChartPie aria-hidden />
+          Aylık özet
         </Link>
       </div>
 

@@ -23,12 +23,12 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0f766e" },
+    { media: "(prefers-color-scheme: light)", color: "#313076" },
     { media: "(prefers-color-scheme: dark)", color: "#0f0f0f" },
   ],
 };
 
-const temaBetigi = `(function(){try{var t=localStorage.getItem("kitty-tema");var k=t==="koyu"||(t!=="acik"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",k)}catch(e){}})();`;
+const temaBetigi = `(function(){try{var t=localStorage.getItem("kitty-tema");var k=t==="koyu"||(t!=="acik"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",k);if(localStorage.getItem("kitty-kenar")==="dar")document.documentElement.dataset.kenar="dar"}catch(e){}})();`;
 
 export default function RootLayout({
   children,

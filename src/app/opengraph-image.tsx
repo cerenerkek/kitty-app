@@ -16,7 +16,7 @@ export default function OnizlemeGorseli() {
           alignItems: "center",
           justifyContent: "center",
           gap: 16,
-          background: "#0f766e",
+          background: "#313076",
           color: "white",
         }}
       >

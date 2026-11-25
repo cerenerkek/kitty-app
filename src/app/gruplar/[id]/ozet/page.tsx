@@ -10,6 +10,7 @@ import {
 } from "@/components/kategori-grafigi";
 import { formatTL } from "@/lib/para";
 import { kategoriBilgisi } from "@/lib/kategoriler";
+import { KategoriSimgesi } from "@/components/kategori-simgesi";
 import { ayAdi, ayCozumle, ayinIlkGunu, ayKaydir, buAy } from "@/lib/ay";
 import { bugunIstanbul } from "@/lib/tarih";
 
@@ -159,10 +160,15 @@ export default async function AylikOzetSayfasi({
                     return (
                       <tr key={v.kategori}>
                         <td className="py-2">
-                          {k.emoji} {k.ad}
-                          <span className="block text-xs text-muted-foreground">
-                            {v.adet} harcama · %{yuzde}
-                          </span>
+                          <div className="flex items-center gap-2.5">
+                            <KategoriSimgesi kod={k.kod} boyut="sm" />
+                            <div>
+                              {k.ad}
+                              <span className="block text-xs text-muted-foreground">
+                                {v.adet} harcama · %{yuzde}
+                              </span>
+                            </div>
+                          </div>
                         </td>
                         <td className="py-2 text-right tabular-nums">
                           {formatTL(v.toplam)}
